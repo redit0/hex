@@ -40,6 +40,18 @@ g.func.findFolder = function(folder, path)
     return null
 end function
 
+g.func.findWritableFolder = function(file)
+    if file.is_folder and file.has_permission("w") then return file
+
+    for folder in file.get_folders
+        result = g.func.findWritableFolder(folder)
+
+        if result then return result
+    end for
+
+    return null
+end function
+
 // Recursively finds a file by name.
 // @param {file} file - The starting file or folder.
 // @param {string} name - The name of the file to search for.
@@ -283,18 +295,15 @@ end function
 
 // Sets some initial values for **HEX**.
 // @return {none}
-g.func.init = function()
-    g.metax = include_lib(current_path + "/metaxploit.so")
-    g.crypto = include_lib(current_path + "/crypto.so")
-
+g.func.init = function
     g.context.index = "0" // Must be a string
 
-    context = get_shell.createContext
-    
-    context.path = current_path
-    context.file = context.computer.File(context.path)
-    context.metax = include_lib(current_path + "/metaxploit.so")
-    context.crypto = include_lib(current_path + "/crypto.so")
+    context = get_shell.createContext("home")
 
     g.stack[g.context.index] = context
+end function
+
+g.func.loadLibs = function
+    g.stack[g.context.index].metax = include_lib(context.path + "/metaxploit.so")
+    g.stack[g.context.index].crypto = include_lib(context.path + "/crypto.so")
 end function

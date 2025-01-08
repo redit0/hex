@@ -18,8 +18,7 @@ doDec = function(args = null)
             encPass = line
         end if
 
-        password = g.crypto.decipher(encPass)
-        print(username + "/" + password)
+        password = g.stack["0"].crypto.decipher(encPass)
 
         return [username, password]
     end function
@@ -44,7 +43,7 @@ doDec = function(args = null)
     decipherFiles = function(files)
         results = {}
         homePattern = "home\/[a-zA-Z0-9]+\/"
-        rootPattern = "root\/[a-zA-Z0-9]+\/"
+        rootPattern = "root\/Config\/"
 
         for file in files
             if file.path == "/etc/passwd" then
@@ -68,11 +67,11 @@ doDec = function(args = null)
 
                 if file.path.is_match(homePattern) then
                     matches = file.path.matches(homePattern)
-                else if file.path.is_match(rootPattern) then
-                    matches = file.path.matches(rootPattern)
-                end if
 
-                user = matches[matches.indexes[0]].split("/")[1]
+                    user = matches[matches.indexes[0]].split("/")[1]
+                else if file.path.is_match(rootPattern) then
+                    user = "root"
+                end if
 
                 line = file.get_content.split(char(10))[0]
 
@@ -93,7 +92,7 @@ doDec = function(args = null)
 
     doOutput = function(results)
         if results == null or not results.indexes then
-            print g.error("Problem with results parameter!!")
+            print g.const.nl + g.const.indent + g.s3("<size=120%>No credentials found.</size>") + g.const.nl
             return
         end if
 
@@ -101,11 +100,13 @@ doDec = function(args = null)
             output = g.const.nl + g.func.heading("Found Credentials") + g.const.nl
 
             for user in results.indexes
-                output = output + g.const.indent + g.s2("<size=115%><voffset=0.5em>" + user + "</voffset></size>") + g.const.nl
+                header = user
 
                 if results[user].hasIndex("password") then
-                    output = output + g.const.indent*2 + g.s3("Password: ") + g.g2(results[user]["password"]) + g.const.nl
+                    header = header + ": " + g.g2(results[user]["password"])
                 end if
+
+                output = output + g.const.indent + "<size=115%><voffset=0.5em>" + g.s2(header) + "</voffset></size>" + g.const.nl
 
                 if results[user].hasIndex("mail") then
                     output = output + g.const.indent*2 + g.s3("Mail:") + g.const.nl

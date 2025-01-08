@@ -114,14 +114,14 @@ hack = function(args)
                         result.address = temp.getLocal
                         result.user = temp.getUser(1)
 
-                        item = temp.createContext
+                        item = temp.createContext("overflow")
                         g.stack.add(item)
                     else if type == "file" then
                         result.type = type
                         result.address = address
                         result.user = temp.getUser(1)
 
-                        item = temp.createContext
+                        item = temp.createContext("overflow")
                         item.local = address
                         item.public = public
                         g.stack.add(item)
@@ -226,6 +226,15 @@ hack = function(args)
     // @return {list} - List containing the loaded meta library or an empty list if not found.
     getLocalLib = function(libname)
         context = g.stack[g.context.index]
+
+        if context.type != "shell" then
+            print(g.const.indent + g.y1("Context must be a shell to use this tool on a remote target's local libraries."))
+        end if
+
+        if not context.metax then
+            print(g.error("Context does not contain a metax library (Hint: Use 'jump')."))
+            return []
+        end if
         metax = context.metax
         metaLib = metax.load("/lib/" + libname)
         if metaLib then
@@ -234,7 +243,7 @@ hack = function(args)
             result.address = context.comp.getLocal
             return [result]
         else
-            print(g.const.indent + g.error("Could not find library: " + libname))
+            print(g.error("Could not find library: " + libname))
             return []
         end if
     end function
@@ -244,7 +253,7 @@ hack = function(args)
     getAllLocalLibs = function()
         context = g.stack[g.context.index]
         metaLibs = []
-        libsDir = context.comp.File("/lib")
+        libsDir = context.file.getFolder("/lib")
         libs = libsDir.get_files
         for file in libs
             if file.name[-3:] == ".so" then
@@ -263,6 +272,15 @@ hack = function(args)
     // @param {string} address - The address to use for the overflow.
     // @return {list} - List containing the dumped meta library or an empty list if not found.
     getRemoteLib = function(ip, port, address)
+        if context.type != "shell" then
+            print(g.const.indent + g.y1("Context must be a shell to use this tool on a remote target's libraries."))
+        end if
+
+        if not context.metax then
+            print(g.error("Context does not contain a metax library (Hint: Use 'jump')."))
+            return []
+        end if
+
         metax = context.metax
         session = metax.net_use(ip, port)
         metaLib = session.dump_lib
@@ -358,10 +376,10 @@ hack = function(args)
 
                         result = getBounce(metaLibs, args[1])
 
-                        item = result.createContext
-                        g.stack.add(item)
-
                         if result then
+                            item = result.createContext("bounce")
+                            g.stack.add(item)
+
                             g.util.clear.exec
                             print g.const.nl + g.const.indent + g.g1("Found computer object for " + args[1] + " with access level " + result.getUser(0))
                             g.stack.push(result)
@@ -413,17 +431,17 @@ hack = function(args)
 
                         result = getBounce(metaLibs, args[1])
 
-                        item = result.createContext
-                        g.stack.add(item)
-
                         if result then
+                            item = result.createContext("bounce")
+                            g.stack.add(item)
+
                             g.util.clear.exec
                             print g.const.nl + g.const.indent + g.g1("Found computer object for " + args[1] + " with access level " + result.getUser(0))
                             g.stack.push(result)
                             return
                         else
                             g.util.clear.exec
-                            print g.const.nl + g.const.indent + g.r1(g.const.indent + "No computer object found for " + args[1])
+                            print g.const.nl + g.error("No computer object found for " + args[1])
                             return
                         end if
                     else

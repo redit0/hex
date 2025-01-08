@@ -6,7 +6,8 @@ lockdownHelp = function(self)
     print(text)
 end function
 
-setPerms = function(obj)
+lockdown = function(args = null)
+    setPerms = function(obj)
     if obj.permissions != "d---------" or obj.permissions != "----------" then
         result = obj.chmod("u-rwx")
         if result != "" then print(g.error(result))
@@ -15,16 +16,16 @@ setPerms = function(obj)
         result = obj.chmod("o-rwx")
         if result != "" then print(g.error(result))
     end if
-end function
+    end function
 
-setHomePerms = function(obj)
+    setHomePerms = function(obj)
     result = obj.chmod("u+rx")
     if result != "" then print(g.error(result))
     result = obj.chmod("g+rx")
     if result != "" then print(g.error(result))
-end function
+    end function
 
-doLockdown = function(dir, home, excludes)
+    doLockdown = function(dir, home, excludes)
     print(g.const.indent + g.l2("Locking " + dir.path + "..."))
 
     setPerms(dir)
@@ -68,9 +69,8 @@ doLockdown = function(dir, home, excludes)
     end for
 
     return
-end function
+    end function
 
-lockdown = function(args = null)
     if args != null and args.len > 0 then
         if args[0] == "help" or args[0] == "-h" then
             self.help

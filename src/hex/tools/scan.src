@@ -67,12 +67,12 @@ doScan = function(args)
             if not g.database[metaLib.lib_name].hasIndex(metaLib.version) then
                 g.database[metaLib.lib_name][metaLib.version] = {}
 
-                mems = g.metax.scan(metaLib)
+                mems = g.stack["0"].metax.scan(metaLib)
 
                 for mem in mems
                     g.database[metaLib.lib_name][metaLib.version][mem] = {}
 
-                    vulns = g.metax.scan_address(metaLib, mem).split("Unsafe check: ")[1:]
+                    vulns = g.stack["0"].scan_address(metaLib, mem).split("Unsafe check: ")[1:]
                     for vuln in vulns
                         value = vuln[vuln.indexOf("<b>")+3:vuln.indexOf("</b>")]
 

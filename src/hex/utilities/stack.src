@@ -44,7 +44,9 @@ doStack = function(args = null)
         items[i].sort("local")
     end for
 
-    output = g.const.nl + g.const.indent + g.s3("<size=115%><voffset=0.5em>Index<pos=150>Public IP<pos=350>Local IP<pos=550>Type<pos=700>User</voffset></size>") + g.const.nl
+    output = g.const.nl + g.const.indent
+    
+    output = output + g.s3("<size=115%><voffset=0.5em>Index<pos=120>Public IP<pos=320>Local IP<pos=500>Type<pos=610>Source<pos=730>User</voffset></size>") + g.const.nl
 
     context = g.stack[g.context.index]
 
@@ -52,15 +54,7 @@ doStack = function(args = null)
         for item in items[i]
             line = g.const.indent
 
-            if item.public == context.public and item.local == context.local and item.type == context.type then
-                line = line + "<i>"
-            end if
-
-            line = line + item.key + "<pos=150>" + item.public + "<pos=350>" + item.local + "<pos=550>" + item.type + "<pos=700>" + item.user
-
-            if item.public == context.public and item.local == context.local and item.type == context.type then
-                line = line + "</i>"
-            end if
+            line = line + item.key + "<pos=120>" + item.public + "<pos=320>" + item.local + "<pos=500>" + item.type + "<pos=610>" + item.source + "<pos=730>" + item.user
 
             if item.public == context.public and item.local == context.local and item.type == context.type then
                 output = output + g.b4(line) + g.const.nl
@@ -78,6 +72,7 @@ g.stack.add = function(item)
     updateItem = function(i, item)
         g.stack[i][item.type] = item[item.type]
         g.stack[i].user = item.getUser
+        g.stack[i].source = item.source
 
         if item.type == "shell" then
             g.stack[i].computer = item.computer

@@ -6,7 +6,8 @@ treeHelp = function(self)
     print(text)
 end function
 
-string.formatPermissions = function
+tree = function(args = null)
+    string.formatPermissions = function
     if not self isa string then
         print(g.error("Invalid type: " + typeof(self)))
         return null
@@ -17,25 +18,25 @@ string.formatPermissions = function
     else
         return g.s2("[" + self + "]")
     end if
-end function
+    end function
 
-string.formatUsername = function
+    string.formatUsername = function
     if not self isa string then
         return self
     end if
 
     if self == "root" then return g.d1("[" + self + "]") else return g.s2("[" + self + "]")
-end function
+    end function
 
-map.sortKey = function(self)
+    map.sortKey = function(self)
     if typeof(self) == "file" then
         return self.path.replace("[^a-zA-Z0-9]","")
     end if
 
     return ""
-end function
+    end function
 
-map.getFileColor = function
+    map.getFileColor = function
     if typeof(self) != "file" then
         print(g.error("Invalid type: " + typeof(self)))
         return null
@@ -75,19 +76,18 @@ map.getFileColor = function
         end if
 
     end if
-end function
+    end function
 
-getTree = function(path)
-    files = path.get_folders + path.get_files
+    getTree = function(path)
+        files = path.get_folders + path.get_files
 
-    for file in files
-        g.util.tree.data.files.push(file)
+        for file in files
+            g.util.tree.data.files.push(file)
 
-        if file.is_folder then getTree(file)
-    end for
-end function
+            if file.is_folder then getTree(file)
+        end for
+    end function
 
-tree = function(args = null)
     idx = g.context.index
 
     path = "/"

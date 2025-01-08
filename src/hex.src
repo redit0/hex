@@ -12,9 +12,11 @@ g.util = {}
 
 import_code("hex/colors.src")
 import_code("hex/constants.src")
-import_code("hex/context.src")
 import_code("hex/functions.src")
 import_code("hex/extensions.src")
+
+g.registerExtensions
+
 import_code("hex/banner.src")
 import_code("hex/prompt.src")
 
