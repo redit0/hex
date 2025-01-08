@@ -76,7 +76,7 @@ end function
 
 g.stack.add = function(item)
     updateItem = function(i, item)
-        g.stack[i][item.type] = item
+        g.stack[i][item.type] = item[item.type]
         g.stack[i].user = item.getUser
 
         if item.type == "shell" then

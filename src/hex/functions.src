@@ -3,13 +3,6 @@
 // @param {number} color - Whether to return the username in color (1) or not (0).
 // @return {string} - The username.
 g.func.getUser = function(file, color = 0)
-    print("Inside g.func.getUser.  typeof(file) is [" + typeof(file) + "]")
-    if file isa g.Target then
-        print("Inside g.func.getUser.  file isa g.Target = true")
-    else
-        print("Inside g.func.getUser.  file isa g.Target = false")
-    end if
-
     while file.path != "/"
         file = file.parent
     end while
@@ -299,6 +292,7 @@ g.func.init = function()
     context = get_shell.createContext
     
     context.path = current_path
+    context.file = context.computer.File(context.path)
     context.metax = include_lib(current_path + "/metaxploit.so")
     context.crypto = include_lib(current_path + "/crypto.so")
 

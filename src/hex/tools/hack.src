@@ -95,7 +95,7 @@ hack = function(args)
                             result.address = address
 
                             match = input.matches(pattern)
-                            user = match[match.indexes[0]].replace("user ", "").replace(" modified", "")
+                            user = match[match.indexes[0]].split(" ")[1]
 
                             if user == "root" then
                                 result.user = g.g1(user)
