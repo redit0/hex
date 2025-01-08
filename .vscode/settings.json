@@ -1,0 +1,17 @@
+{
+    "greybel.createIngame.autoCompile": true,
+    "greybel.createIngame.agent": "message-hook",
+    "greybel.createIngame.active": true,
+    "greybel.interpreter.environmentVariables": {
+        "ip": "0.0.0.0",
+        "pass": "redacted"
+    },
+    "greybel.interpreter.useDefaultArgs": true,
+    "greybel.interpreter.hideUnsupportedTextMeshProRichTextTags": true,
+    "greybel.transpiler.environmentVariables": {
+        "ip": "0.0.0.0",
+        "pass": "redacted"
+    },
+    "greybel.transpiler.ingameDirectory": "/bin/",
+    "greybel.transpiler.installer.active": false
+}

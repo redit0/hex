@@ -3,6 +3,13 @@
 // @param {number} color - Whether to return the username in color (1) or not (0).
 // @return {string} - The username.
 g.func.getUser = function(file, color = 0)
+    print("Inside g.func.getUser.  typeof(file) is [" + typeof(file) + "]")
+    if file isa g.Target then
+        print("Inside g.func.getUser.  file isa g.Target = true")
+    else
+        print("Inside g.func.getUser.  file isa g.Target = false")
+    end if
+
     while file.path != "/"
         file = file.parent
     end while
@@ -60,6 +67,28 @@ g.func.findFile = function(file, name)
     end for
 
     return null
+end function
+
+// Recursively finds files by name.
+// @param {file} file - The starting file or folder.
+// @param {string} name - The name of the file to search for.
+// @return {list<file>} - The found files or an empty list if none are found.
+g.func.findFiles = function(file, name)
+    results = []
+
+    if file.name == name and not file.is_folder then results.push(file)
+
+    files = file.get_files + file.get_folders
+
+    for temp in files
+        if temp.name == name and not temp.is_folder then results.push(temp)
+
+        if temp.is_folder then
+            results = results + g.func.findFiles(temp, name)
+        end if
+    end for
+
+    return results
 end function
 
 // Generates a random valid IP address that is not a LAN IP.

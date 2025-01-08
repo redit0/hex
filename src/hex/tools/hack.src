@@ -484,7 +484,7 @@ hack = function(args)
 
                 output = output(results)
 
-                g.util.clear.exec
+                //g.util.clear.exec
                 print g.func.getPrompt
                 print(output)
                 return

@@ -1,3 +1,4 @@
 import_code("tools/scan.src")
 import_code("tools/nmap.src")
 import_code("tools/hack.src")
+import_code("tools/decipher.src")

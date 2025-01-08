@@ -1,0 +1,167 @@
+decHelp = function(self)
+    text = g.const.ni + g.l3("Usage:","u") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" {credentials or password}") + g.l2(" Searches file system for all passwd, Mail, Bank, and Map files.  Deciphers and lists any credentials it finds in them.  If an encrypted password (or credentials set in the format username:encrypted_passsword) is passed in, it deciphers that instead.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
+
+    print(text)
+end function
+
+doDec = function(args = null)
+    context = g.stack[g.context.index]
+
+    decipherLine = function(line)
+        username = ""
+        if line.indexOf(":") == -1 then
+            username = line.split(":")[0]
+            encPass = line.split(":")[1]
+        else
+            encPass = line
+        end if
+
+        password = g.crypto.decipher(encPass)
+
+        return [username, password]
+    end function
+
+    findFiles = function
+        fileNames = ["Mail.txt", "Bank.txt", "passwd"]
+        root = context.file.getRootFolder
+
+        files = []
+
+        for name in fileNames
+            tempFiles = g.func.findFiles(root, name)
+
+            for temp in tempFiles
+                if not temp.is_binary and temp.has_permission("r") then files.push(temp)
+            end for
+        end for
+
+        return files
+    end function
+
+    decipherFiles = function(files)
+        results = {}
+        homePattern = "home\/[a-zA-Z0-9]+\/"
+        rootPattern = "root\/[a-zA-Z0-9]+\/"
+
+        for file in files
+            if file.path == "/etc/passwd" then
+                lines  = file.get_content.split(char(10))
+
+                for line in lines
+                    if line.len > 0 then
+                        creds = decipherLine(line)
+
+                        if creds[0] == "" then continue
+
+                        if not results.hasIndex(creds[0]) then
+                            results[creds[0]] = {"password":creds[1]}
+                        else
+                            results[creds[0]]["password"] = creds[1]
+                        end if
+                    end if
+                end for
+            else if file.name == "Mail.txt" or file.name == "Bank.txt" then
+                if not file.path.is_match(homePattern) and not file.path.is_match(rootPattern) then continue
+
+                if file.path.is_match(homePattern) then
+                    matches = file.path.matches(homePattern)
+                else if file.path.is_match(rootPattern) then
+                    matches = file.path.matches(rootPattern)
+                end if
+
+                user = matches[matches.indexes[0]].split("/")[1]
+
+                line = file.get_content.split(char(10))[0]
+
+                mail = decipherLine(line)
+
+                name = file.name.split(".")[0].lower
+
+                if not results.hasIndex(user) then
+                    results[user] = {name:mail}
+                else
+                    results[user][name] = mail
+                end if
+            end if
+        end for
+
+        return results
+    end function
+
+    doOutput = function(results)
+        if results == null or not results.indexes then
+            print g.error("Problem with results parameter!!")
+            return
+        end if
+
+        if results.indexes.len > 0 then
+            output = g.const.nl + g.func.heading("Found Credentials") + g.const.nl
+
+            for user in results.indexes
+                output = output + g.const.indent + g.s2("<size=115%><voffset=0.5em>" + user + "</voffset></size>") + g.const.nl
+
+                if results[user].hasIndex("password") then
+                    output = output + g.const.indent*2 + g.s3("Password: ") + g.g2(results[user]["password"]) + g.const.nl
+                end if
+
+                if results[user].hasIndex("mail") then
+                    output = output + g.const.indent*2 + g.s3("Mail:") + g.const.nl
+                    output = output + g.const.indent*3 + g.s4("Username: ") + g.l3(results[user]["mail"][0]) + g.const.nl
+                    output = output + g.const.indent*3 + g.s4("Password: ") + g.l3(results[user]["mail"][1]) + g.const.nl
+                end if
+
+                if results[user].hasIndex("bank") then
+                    output = output + g.const.indent*2 + g.s3("Bank:") + g.const.nl
+                    output = output + g.const.indent*3 + g.s4("Username: ") + g.l3(results[user]["bank"][0]) + g.const.nl
+                    output = output + g.const.indent*3 + g.s4("Password: ") + g.l3(results[user]["bank"][1]) + g.const.nl
+                end if
+            end for
+
+            print(output, 1)
+        else
+            print g.const.nl + g.const.indent + g.s3("<size=120%>No credentials found.</size>") + g.const.nl
+        end if
+    end function
+
+    if args == null or args == [] then
+        files = findFiles
+        results = decipherFiles(files)
+        doOutput(results)
+
+        return results
+    else if args.len == 1 then
+        if args[0] == "-h" or args[0] == "help" then
+            self.help
+            return
+        else
+            credentials = decipherLine(args[0])
+
+            if credentials[0] == "" then
+                print(g.const.indent + g.l3(credentials[1]))
+            else
+                print(g.const.indent + g.s3("Username: ") + g.l3(credentials[0]))
+                print(g.const.indent + g.s3("Password: ") + g.l3(credentials[1]))
+            end if
+
+            return credentials
+        end if
+    else
+        self.help
+        return
+    end if
+end function
+
+// Fill out the parts of this template, and then place it in the a folder called 'tools' in the same directory as the main hex binary file.
+// You can leave it as src code (name it with a .src file extension), otherwise hex will attempt to load it as a binary file that has been built with the
+// 'allow import' flag set.
+
+g.tools.decipher = {
+    "name": "decipher",         // Unformatted tool name text
+    "text": g.s2("decipher"),   // Tool name text with any formatting you want to use when its name is displayed
+    "sortOrder": 500,           // This number will be used to sort this tool in the menu.  Quit is the last built-in item, with sort order 999.
+    "exec": @doDec,          // A function reference to the toolName function above.
+    "help": @decHelp,      // A function reference to the help function above.
+    "data": {}                  // This map can be used to store any data or additional functions used by the tool that might need to be accessed outside of the tool itself.
+}
