@@ -239,8 +239,12 @@ g.registerExtensions = function
             item.file = item.computer.File(item.path)
         else
             folder = g.func.findWritableFolder(item.file)
-            item.path = folder.path
-            item.file = folder
+            if folder then
+                item.path = folder.path
+                item.file = folder
+            else
+                item.path = item.file.path
+            end if
         end if
 
         item.user = g.func.getUser(item.file)

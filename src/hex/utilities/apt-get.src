@@ -11,6 +11,7 @@ aptHelp = function()
 end function
 
 apt = function(args)
+    context = g.stack[g.context.index]
 
 ///////////////////////////////////////////////////////////////////////////
 //                               Functions                               //
@@ -147,7 +148,7 @@ apt = function(args)
                 if args.len == 3 then
                     path = args[2]
                 else
-                    path = current_path
+                    path = context.path
                 end if
 
                 aptClient = g.func.getApt()

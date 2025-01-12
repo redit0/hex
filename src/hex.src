@@ -10,6 +10,7 @@ g.target = {}
 g.tools = {}
 g.util = {}
 
+import_code("hex/json.src")
 import_code("hex/colors.src")
 import_code("hex/constants.src")
 import_code("hex/functions.src")
@@ -22,6 +23,8 @@ import_code("hex/prompt.src")
 
 #include "hex/tools.src"
 #include "hex/utilities.src"
+
+import_code("hex/proxies.src")
 
 import_code("hex/menu.src")
 
@@ -41,13 +44,22 @@ if params.len > 1 then
 	end if
 end if
 
+g.func.init
 g.func.updateApt
 output = g.func.updateLibs
-clear_screen
-g.func.init
+//clear_screen
+g.func.loadLibs
 print g.func.getBanner
 print output
 print g.func.getMenu
+
+
+g.func.getMap
+for proxy in g.proxies
+    line =  g.const.indent + "IP: " + proxy[0] + " Port: " + proxy[1] + " User: " + proxy[2] + " Pass: " + proxy[3]
+
+    print g.s3(line)
+end for
 
 while true
 	if g.command == "" then

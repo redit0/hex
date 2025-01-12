@@ -9,6 +9,7 @@
     "greybel.interpreter.useDefaultArgs": true,
     "greybel.interpreter.hideUnsupportedTextMeshProRichTextTags": true,
     "greybel.transpiler.environmentVariables": {
+        "proxies": "[[\"\"ip address\"\",22,\"\"username\"\",\"\"password\"\"]]",
         "ip": "0.0.0.0",
         "pass": "redacted"
     },

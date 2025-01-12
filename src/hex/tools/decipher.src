@@ -46,12 +46,15 @@ doDec = function(args = null)
         rootPattern = "root\/Config\/"
 
         for file in files
+            print g.const.indent + "Found: " + file.path
             if file.path == "/etc/passwd" then
                 lines  = file.get_content.split(char(10))
 
                 for line in lines
                     if line.len > 0 then
                         creds = decipherLine(line)
+
+                        print creds
 
                         if creds[0] == "" then continue
 

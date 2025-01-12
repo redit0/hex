@@ -23,6 +23,7 @@ g.Target = {
     "path": "/",
     "metax": null,
     "crypto": null,
+    "apt": null,
     "public": null,
     "local": null
     }

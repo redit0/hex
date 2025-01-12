@@ -80,7 +80,6 @@ end function
 // @return {list<file>} - The found files or an empty list if none are found.
 g.func.findFiles = function(file, name)
     results = []
-
     if file.name == name and not file.is_folder then results.push(file)
 
     files = file.get_files + file.get_folders
@@ -131,10 +130,22 @@ end function
 // Retrieves repository addresses from sources.txt.
 // @return {list<string>} - A list of repository addresses.
 g.func.getRepos = function()
-    sources = get_shell.host_computer.File("/etc/apt/sources.txt")
+    context = g.stack[g.context.index]
+
+    if not context.computer then
+        print(g.error("No computer object found."))
+        return null
+    end if
+
+    sources = context.computer.File("/etc/apt/sources.txt")
 
     if not sources then
         print(g.error("Could not locate sources.txt"))
+        return null
+    end if
+
+    if not sources.has_permission("r") then
+        print(g.error("Could not read sources.txt"))
         return null
     end if
 
@@ -152,7 +163,14 @@ end function
 // Retrieves the apt client library.
 // @return {aptclientLib|null} - The apt client object or null if not found.
 g.func.getApt = function()
-    libFile = g.func.findFile(get_shell.host_computer.File("/"), "aptclient.so")
+    context = g.stack[g.context.index]
+
+    if not context.computer then
+        print(g.error("No computer object found."))
+        return null
+    end if
+
+    libFile = g.func.findFile(context.computer.File("/"), "aptclient.so")
 
     if not libFile then
         print(g.error("Could not locate aptclient.so"))
@@ -172,7 +190,9 @@ end function
 // Updates the apt repositories.
 // @return {none}
 g.func.updateApt = function
-    aptClient = g.func.getApt()
+    context = g.stack[g.context.index]
+
+    aptClient = context.apt
 
     while true
         response = aptClient.update
@@ -198,20 +218,39 @@ end function
 g.func.updateLibs = function
     installLib = function(libName, isUpgrade = 0)
         aptClient = outer.aptClient
-        aptClient.install(libName, current_path)
-        metax = include_lib(current_path + "/metaxploit.so")
-        lib = metax.load(current_path + "/" + libName)
+        aptClient.install(libName, context.path)
+        metaxFile = context.computer.File(context.path + "/metaxploit.so")
+        if metaxFile then
+            metax = include_lib(context.path + "/metaxploit.so")
+            lib = metax.load(context.path + "/" + libName)
 
-        if isUpgrade then
-            outer.output = outer.output + g.const.indent + g.g1("Updated " + libName + " to version " + lib.version) + g.const.nl
+            if isUpgrade then
+                outer.output = outer.output + g.const.indent + g.g1("Updated " + libName + " to version " + lib.version) + g.const.nl
+            else
+                outer.output = outer.output + g.const.indent + g.g1("Installed " + libName + " at version " + lib.version) + g.const.nl
+            end if
         else
-            outer.output = outer.output + g.const.indent + g.g1("Installed " + libName + " at version " + lib.version) + g.const.nl
+            if isUpgrade then
+                outer.output = outer.output + g.const.indent + g.g1("Updated " + libName) + g.const.nl
+            else
+                outer.output = outer.output + g.const.indent + g.g1("Installed " + libName) + g.const.nl
+            end if
         end if
     end function
 
-    aptClient = g.func.getApt()
+    context = g.stack[g.context.index]
+
+    if not context.computer then
+        return g.error("No computer object found.")
+    end if
+
+    aptClient = context.apt
 
     repos = g.func.getRepos
+
+    if not repos then
+        return g.error("Could not update repositories.")
+    end if
 
     output = ""
 
@@ -224,14 +263,14 @@ g.func.updateLibs = function
         aptClient.update
     end if
     
-    metax = get_shell.host_computer.File(current_path + "/metaxploit.so")
+    metax = context.computer.File(context.path + "/metaxploit.so")
 
     if not metax then
         output = output + g.const.indent + g.l2("Installing metaxploit.so...") + g.const.nl
         installLib("metaxploit.so")
     else
-        metaxploit = include_lib(current_path + "/metaxploit.so")
-        lib = metaxploit.load(current_path + "/metaxploit.so")
+        metaxploit = include_lib(context.path + "/metaxploit.so")
+        lib = metaxploit.load(context.path + "/metaxploit.so")
 
         output = output + g.const.indent + g.l2("Found metaxploit.so at version " + lib.version) + g.const.nl
 
@@ -244,14 +283,14 @@ g.func.updateLibs = function
         end if
     end if
 
-    crypto = get_shell.host_computer.File(current_path + "/crypto.so")
+    crypto = context.computer.File(context.path + "/crypto.so")
 
     if not crypto then
         output = output + g.const.indent + g.l2("Installing crypto.so...") + g.const.nl
         installLib("crypto.so")
     else
-        metaxploit = include_lib(current_path + "/metaxploit.so")
-        lib = metaxploit.load(current_path + "/crypto.so")
+        metaxploit = include_lib(context.path + "/metaxploit.so")
+        lib = metaxploit.load(context.path + "/crypto.so")
 
         output = output + g.const.indent + g.l2("Found crypto.so at version " + lib.version) + g.const.nl
 
@@ -301,9 +340,12 @@ g.func.init = function
     context = get_shell.createContext("home")
 
     g.stack[g.context.index] = context
+
+    g.stack[g.context.index].apt = g.func.getApt
 end function
 
 g.func.loadLibs = function
-    g.stack[g.context.index].metax = include_lib(context.path + "/metaxploit.so")
-    g.stack[g.context.index].crypto = include_lib(context.path + "/crypto.so")
+    g.stack[g.context.index].apt = g.func.getApt
+    g.stack[g.context.index].metax = include_lib(g.stack[g.context.index].path + "/metaxploit.so")
+    g.stack[g.context.index].crypto = include_lib(g.stack[g.context.index].path + "/crypto.so")
 end function

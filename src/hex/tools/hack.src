@@ -240,7 +240,7 @@ hack = function(args)
         if metaLib then
             result = {}
             result.metalib = metaLib
-            result.address = context.comp.getLocal
+            result.address = context.computer.getLocal
             return [result]
         else
             print(g.error("Could not find library: " + libname))
@@ -382,7 +382,6 @@ hack = function(args)
 
                             g.util.clear.exec
                             print g.const.nl + g.const.indent + g.g1("Found computer object for " + args[1] + " with access level " + result.getUser(0))
-                            g.stack.push(result)
                             return
                         else
                             g.util.clear.exec
@@ -437,7 +436,6 @@ hack = function(args)
 
                             g.util.clear.exec
                             print g.const.nl + g.const.indent + g.g1("Found computer object for " + args[1] + " with access level " + result.getUser(0))
-                            g.stack.push(result)
                             return
                         else
                             g.util.clear.exec

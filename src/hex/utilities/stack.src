@@ -27,6 +27,11 @@ doStack = function(args = null)
     items = {}
 
     for i in keys
+        if i == null then
+            print "null"
+        else
+            print i
+        end if
         if not i.to_int isa number then continue
 
         context = g.stack[i]
@@ -97,7 +102,9 @@ g.stack.add = function(item)
 
         if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == item.type then
             if g.stack[i].user == "guest" or item.getUser == "root" then
-                updateItem(i, item)
+                if g.stack[i].user != "root" then
+                    updateItem(i, item)
+                end if
             end if
 
             return i

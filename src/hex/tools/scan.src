@@ -72,7 +72,7 @@ doScan = function(args)
                 for mem in mems
                     g.database[metaLib.lib_name][metaLib.version][mem] = {}
 
-                    vulns = g.stack["0"].scan_address(metaLib, mem).split("Unsafe check: ")[1:]
+                    vulns = g.stack["0"].metax.scan_address(metaLib, mem).split("Unsafe check: ")[1:]
                     for vuln in vulns
                         value = vuln[vuln.indexOf("<b>")+3:vuln.indexOf("</b>")]
 
@@ -89,14 +89,22 @@ doScan = function(args)
             return
         end if
 
+        if not context.metax then
+            print(g.error("No metaxploit library available"))
+            return
+        end if
+
         metaLib = context.metax.load(libName)
+
+        if not metaLib then
+            print(g.error("Could not load library: " + libName))
+            return
+        end if
 
         metaLibs = [metaLib]
         scanMetaLibs(metaLibs)
         if not g.tools.scan.data.silent then
             doOutput(metaLibs)
-        else
-            clear_screen
         end if
     end function
 
@@ -123,8 +131,6 @@ doScan = function(args)
         scanMetaLibs(metaLibs)
         if not g.tools.scan.data.silent then
             doOutput(metaLibs)
-        else
-            clear_screen
         end if
     end function
 
@@ -159,8 +165,6 @@ doScan = function(args)
         scanMetaLibs(metaLibs)
         if not g.tools.scan.data.silent then
             doOutput(metaLibs)
-        else
-            clear_screen
         end if
     end function
 
