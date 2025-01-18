@@ -114,9 +114,14 @@ doScan = function(args)
             return
         end if
 
-        netSession = context.metax.net_use(ip, port)
+        if g.hasIndex("proxy") and g["proxy"] != "" and typeof(g["proxy"].to_int) == "number" then
+            proxy = g.stack[g.proxy]
+            netSession = proxy.metax.net_use(ip, port)
+        else
+            netSession = context.metax.net_use(ip, port)
+        end if
 
-        if netSession isa string then
+        if typeof(netSession) == "string" then
             print g.error(netSession)
             return
         else if netSession == null then
