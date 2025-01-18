@@ -28,6 +28,8 @@ g.func.getMap = function
     for mapFile in mapFiles
         content = mapFile.get_content
 
+        if content == null or content == "" then continue
+
         obj = g.func.deserialize(content)
 
         for account in obj.accounts
@@ -38,4 +40,51 @@ g.func.getMap = function
     end for
     
     g.proxies = g.proxies + proxies
+end function
+
+g.func.connectProxies = function
+    output = ""
+
+    for i in range(0, g.proxies.len - 1)
+        proxy = g.proxies[i]
+
+        if g.hasIndex("proxy") then
+            context = g.stack[g.proxy]
+        else
+            context = g.stack[g.context.index]
+        end if
+
+        if not context.shell then
+            output = output + g.error("Current context is not a shell.") + g.const.nl
+            return output            
+        end if
+
+        ip = proxy[0]
+        port = proxy[1]
+        user = proxy[2]
+        pass = proxy[3]
+
+        shell = context.shell.connect_service(ip, port, user, pass)
+
+        if shell == null then
+            output = output + g.error("Failed to connect to " + ip + ":" + port + " with " + user + ":" + pass) + g.const.nl
+            continue
+        else if typeof(shell) == "string" then
+            output = output + g.error(shell) + g.const.nl
+            continue
+        else if shell.classID == "ftpshell" then
+            output = output + g.error("Expected shell, got ftpshell instead.") + g.const.nl
+            continue
+        else
+            obj = shell.createContext("proxy (" + (i + 1) + ")")
+            obj.path = "/root"
+            key = g.stack.add(obj)
+            g.proxy = key
+            g.context.index = key
+            g.util.jump.exec
+            output = output + g.const.indent + g.g1("Connected to Proxy " + (i + 1) + " (" + ip + " : " + port + " with " + user + " : " + pass + ")") + g.const.nl
+        end if
+    end for
+
+    return output
 end function

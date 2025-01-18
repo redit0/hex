@@ -27,11 +27,6 @@ doStack = function(args = null)
     items = {}
 
     for i in keys
-        if i == null then
-            print "null"
-        else
-            print i
-        end if
         if not i.to_int isa number then continue
 
         context = g.stack[i]
@@ -49,7 +44,9 @@ doStack = function(args = null)
         items[i].sort("local")
     end for
 
-    output = g.const.nl + g.const.indent
+    output = g.const.nl + g.const.indent + "Legend:" + g.const.tab*2 + g.b4("Current Context") + g.const.tab*2 + g.g2("Selected Proxy") + g.const.nl
+
+    output = output + g.const.nl + g.const.indent
     
     output = output + g.s3("<size=115%><voffset=0.5em>Index<pos=120>Public IP<pos=320>Local IP<pos=500>Type<pos=610>Source<pos=730>User</voffset></size>") + g.const.nl
 
@@ -63,6 +60,8 @@ doStack = function(args = null)
 
             if item.public == context.public and item.local == context.local and item.type == context.type then
                 output = output + g.b4(line) + g.const.nl
+            else if g.proxy == item.key then
+                output = output + g.g2(line) + g.const.nl
             else
                 output = output + g.l1(line) + g.const.nl
             end if
@@ -121,7 +120,9 @@ g.stack.clear = function
 
     for i in keys
         if i.to_int isa number and i.to_int > 0 then
-            g.stack.remove(i)
+            if not g.stack[i].source.is_match("proxy") then
+                g.stack.remove(i)
+            end if
         end if
     end for
 end function
@@ -131,10 +132,9 @@ end function
 // 'allow import' flag set.
 
 g.util.stack = {
-    "name": "stack",         // Unformatted tool name text
-    "text": g.s2("stack"),   // Tool name text with any formatting you want to use when its name is displayed
-    "sortOrder": 500,           // This number will be used to sort this tool in the menu.  Quit is the last built-in item, with sort order 999.
-    "exec": @doStack,          // A function reference to the toolName function above.
-    "help": @stackHelp,      // A function reference to the help function above.
-    "data": {}                  // This map can be used to store any data or additional functions used by the tool that might need to be accessed outside of the tool itself.
+    "name": "stack",
+    "shortDescription": "Prints a list of all contexts currently in the stack.",
+    "exec": @doStack,
+    "help": @stackHelp,
+    "data": {}
 }

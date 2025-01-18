@@ -8,67 +8,57 @@ end function
 
 lockdown = function(args = null)
     setPerms = function(obj)
-    if obj.permissions != "d---------" or obj.permissions != "----------" then
-        result = obj.chmod("u-rwx")
-        if result != "" then print(g.error(result))
-        result = obj.chmod("g-rwx")
-        if result != "" then print(g.error(result))
-        result = obj.chmod("o-rwx")
-        if result != "" then print(g.error(result))
-    end if
+        if obj.permissions != "d---------" or obj.permissions != "----------" then
+            result = obj.chmod("u-rwx")
+            if result != "" then print(g.error(result))
+            result = obj.chmod("g-rwx")
+            if result != "" then print(g.error(result))
+            result = obj.chmod("o-rwx")
+            if result != "" then print(g.error(result))
+        end if
     end function
 
     setHomePerms = function(obj)
-    result = obj.chmod("u+rx")
-    if result != "" then print(g.error(result))
-    result = obj.chmod("g+rx")
-    if result != "" then print(g.error(result))
+        result = obj.chmod("g+rx")
+        if result != "" then print(g.error(result))
     end function
 
     doLockdown = function(dir, home, excludes)
-    print(g.const.indent + g.l2("Locking " + dir.path + "..."))
+        print(g.const.indent + g.l2("Locking " + dir.path + "..."))
 
-    setPerms(dir)
+        setPerms(dir)
 
-    if dir.owner != "root" then
         dir.set_owner("root")
-    end if
-
-    if dir.group != "root" then
         dir.set_group("root")
-    end if
 
-    for folder in dir.get_folders
-        doLockdown(folder, home, excludes)
-    end for
+        for folder in dir.get_folders
+            doLockdown(folder, home, excludes)
+        end for
 
-    for file in dir.get_files
-        if file.name == "Mail.txt" or file.name == "Bank.txt" or (file.name == "passwd" and file.path != "/bin/passwd") then
-            print(g.const.indent + g.o1("Deleting " + file.path + "..."))
-            result = file.delete
-            if result != "" then
-                print(g.error(result))
-            else
-                continue
-            end if
-        end if
-
-        setPerms(file)
-
-        if home and typeof(excludes.indexOf(file.name)) == "number" then
-            setHomePerms(file)
-        else
-            if file.owner != "root" then
+        for file in dir.get_files
+            if not file.owner == "root" or not file.group == "root" then
                 file.set_owner("root")
-            end if
-
-            if file.group != "root" then
                 file.set_group("root")
             end if
-        end if
-    end for
 
-    return
+            if file.name == "Mail.txt" or file.name == "Bank.txt" or (file.name == "passwd" and file.path != "/bin/passwd") then
+                print(g.const.indent + g.o1("Deleting " + file.path + "..."))
+                result = file.delete
+                if result != "" then
+                    print(g.error(result))
+                else
+                    continue
+                end if
+            end if
+
+            setPerms(file)
+
+            if home and typeof(excludes.indexOf(file.name)) == "number" then
+                setHomePerms(file)
+            end if
+        end for
+
+        return
     end function
 
     if args != null and args.len > 0 then
@@ -122,10 +112,9 @@ end function
 // 'allow import' flag set.
 
 g.util.lockdown = {
-    "name": "lockdown",         // Unformatted tool name text
-    "text": g.s2("lockdown"),    // Tool name text with any formatting you want to use when its name is displayed
-    "sortOrder": 500,           // This number will be used to sort this tool in the menu.  Quit is the last built-in item, with sort order 999.
-    "exec": @lockdown,          // A function reference to the toolName function above.
-    "help": @lockdownHelp,      // A function reference to the help function above.
-    "data": {}                  // This map can be used to store any data or additional functions used by the tool that might need to be accessed outside of the tool itself.
+    "name": "lockdown",
+    "shortDescription": "Secures the filesystem on the current context's device.",
+    "exec": @lockdown,
+    "help": @lockdownHelp,
+    "data": {}
 }

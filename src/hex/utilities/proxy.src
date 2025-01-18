@@ -1,0 +1,22 @@
+proxyHelp = function()
+    text = g.const.ni + g.l3("Usage:","u") + g.const.ni
+    text = text + g.g2(self.name) + g.l2(" Starts a terminal on the current context.") + g.const.nl
+    text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
+
+    print(text)
+end function
+
+doProxy = function(args)
+    context = g.stack[g.context.index]
+    if not context.shell then print(g.error("Current context is not a shell."))
+
+    context.shell.start_terminal
+end function
+
+g.util.proxy = {
+    "name": "proxy",
+    "shortDescription": "Manages the proxy chain.",
+    "exec": @doProxy,
+    "help": @proxyHelp,
+    "data": {}
+}

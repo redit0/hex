@@ -41,8 +41,7 @@ end function
 
 g.util.jump = {
     "name": "jump",
-    "text": g.s2("jump"),
-    "sortOrder": 500,
+    "shortDescription": "Transfers libs to the target and attaches them to the context.",
     "exec": @doJump,
     "help": @jumpHelp,
     "data": {}

@@ -206,8 +206,7 @@ end function
 
 g.tools.scan = {
     "name": "scan",
-    "text": g.s2("scan"),
-    "sortOrder": 1,
+    "shortDescription": "Scans for vulnerabilities.",
     "exec": @doScan,
     "help": @scanHelp,
     "data": {}

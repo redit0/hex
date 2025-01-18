@@ -168,8 +168,7 @@ end function
 
 g.util["apt-get"] = {
     "name": "apt-get",
-    "text": g.s2("apt-get"),
-    "sortOrder": 500,
+    "shortDescription": "Manages apt repositories and installs libraries.",
     "exec": @apt,
     "help": @aptHelp,
     "data": {}

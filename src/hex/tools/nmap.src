@@ -7,61 +7,6 @@ nmapHelp = function(self)
     print(text)
 end function
 
-/////////////////////////////////////////////////////////////////
-//     Mark and print the choices for the menu at the end.     //
-/////////////////////////////////////////////////////////////////
-printChoices = function(index, choices)
-    maxLength = 0
-
-    choices.sort
-
-    for choice in choices
-        if choice.len > maxLength then maxLength = choice.len
-    end for
-
-    pos = ((maxLength + 1)*11)+5
-
-    for x in range(0,choices.len-1)
-        if x == index then
-            print(g.const.indent + g.l1("<mark=" + g.colors.y1 + "77>  " + choices[x] + "<pos=" + pos + "><color=" + g.colors.y1 + "00>-</color></mark>"))
-        else
-            print(g.const.indent + g.s3("  " + choices[x] + "<pos=" + pos + "><color=#00000000>-</color>"))
-        end if
-    end for
-end function
-
-
-/////////////////////////////////////////////////////////////////
-//             Get choices for the menu at the end             //
-/////////////////////////////////////////////////////////////////
-getChoices = function(data)
-    results = data
-    router = results.info.router
-
-    ports = router.used_ports
-
-    choices = []
-
-    choices.push("1." + g.const.tab + "Try for a computer<pos=380>(bounce)")
-    choices.push("2." + g.const.tab + router.local_ip + "<pos=280>:0<pos=380>(kernel " + router.kernel_version + ")")
-
-    ports = ports.sort("get_lan_ip")
-
-    count = 2
-
-    for port in ports
-        if not port.is_closed then
-            count = count + 1
-
-            choices.push(count + "." + g.const.tab + port.get_lan_ip + "<pos=280>:" + port.port_number + "<pos=380>(" + router.port_info(port) + ")")
-        end if
-    end for
-
-    choices.push((count + 1) + "." + g.const.tab + "Return to main menu")
-
-    return choices
-end function
-
 
 /////////////////////////////////////////////////////////////////
 //                 Format and print the output.                //
@@ -83,21 +28,19 @@ getOutput = function(data, index)
 
     // Firewall Info
 
-    output = ""
-
-    retVal = retVal + g.const.nl + g.func.heading("Firewall Rules") + g.const.nl
-
     if data.firewall then
+        output = ""
+
+        retVal = retVal + g.const.nl + g.func.heading("Firewall Rules") + g.const.nl
+
         for rule in data.firewall
             output = output + g.const.indent + rule + g.const.nl
         end for
-    else
-        output = output + g.const.indent + g.const.tab + g.d1("<size=18>(No firewall rules)</size>")
+
+        output = output + g.const.nl*2
+
+        retVal = retVal + output
     end if
-
-    output = output + g.const.nl*2
-
-    retVal = retVal + output
 
     // Devices/Ports Info
 
@@ -166,7 +109,7 @@ doNmap = function(address)
     // Whois Info
     results.info = {}
 
-    lines = whois(address).split(char(10))
+    lines = whois(router.public_ip).split(char(10))
 
     results.info.domain = lines[0].split(":")[1].trim
     results.info.admin = lines[1].split(":")[1].trim
@@ -249,38 +192,6 @@ doNmap = function(address)
     return results
 end function
 
-doChoices = function(data)
-    index = 0
-
-    choices = getChoices(data)
-
-    while true
-        clear_screen
-
-        output = getOutput(data)
-
-        output = output + g.const.nl + g.func.heading("Choose how to proceed:")
-
-        print(output)
-
-        printChoices(index, choices)
-
-        input = user_input(char(0),0,1)
-
-        if input == "DownArrow" or input == "2" or input == "s" then
-            if index < choices.len-1 then index = index + 1
-        else if input == "UpArrow" or input == "8" or input == "w" then
-            if index > 0 then index = index - 1
-        else if input == "Escape" then
-            return
-        else if input == " " or input.len == 0 then
-            break
-        end if
-    end while
-
-    return choices[index]
-end function
-
 
 ///////////////////////////////////////////////////////////////////////////
 //    Main entry point. Handle arguments, call out to other functions    //
@@ -300,26 +211,7 @@ nmap = function(args)
         if results != null then
             self.data.saved = results
 
-            choice = doChoices(results)
-
-            if choice.indexOf("computer") != null then
-                input = user_input(g.const.indent + g.l2("Enter the LAN IP address of the target computer: "))
-
-                if not is_valid_ip(input) or not is_lan_ip(input) then
-                    print g.const.indent + g.error("Invalid IP address: " + input)
-                    return
-                end if
-                g.command = "hack " + args[0] + " " + input
-                return
-            else if choice.indexOf("Return") != null then
-                g.util.clear.exec
-                return
-            else
-                temp = choice.split(":")[1].split("<")[0]
-                
-                g.command = "hack " + args[0] + " " + temp
-                return
-            end if
+            print getOutput(results)
         end if
     else
         self.help
@@ -333,10 +225,9 @@ end function
 // 'allow import' flag set.
 
 g.tools.nmap = {
-    "name": "nmap",         // Unformatted tool name text
-    "text": g.s2("nmap"),   // Tool name text with any formatting you want to use when its name is displayed
-    "sortOrder": 0,       // This number will be used to sort this tool in the menu.  Quit is the last built-in item, with sort order 999.
-    "exec": @nmap,          // A function reference to the toolName function above.
-    "help": @nmapHelp,      // A function reference to the help function above.
-    "data": {}              // This map can be used to store any data or additional functions used by the tool that might need to be accessed outside of the tool itself.
+    "name": "nmap",
+    "shortDescription": "Displays port and whois information.",
+    "exec": @nmap,
+    "help": @nmapHelp,
+    "data": {}
 }

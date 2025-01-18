@@ -238,6 +238,31 @@ g.func.updateLibs = function
         end if
     end function
 
+    checkRepos = function
+        hasMetax = 0
+        hasCrypto = 0
+
+        results = aptClient.search("metaxploit.so").split(char(10) + char(10))
+
+        for result in results
+            if result.split(char(10))[0] == "<b>metaxploit.so</b>" then
+                hasMetax = 1
+                break
+            end if
+        end for
+
+        results = aptClient.search("crypto.so").split(char(10) + char(10))
+
+        for result in results
+            if result.split(char(10))[0] == "<b>crypto.so</b>" then
+                hasCrypto = 1
+                break
+            end if
+        end for
+
+        return hasMetax and hasCrypto
+    end function
+
     context = g.stack[g.context.index]
 
     if not context.computer then
@@ -248,7 +273,7 @@ g.func.updateLibs = function
 
     repos = g.func.getRepos
 
-    if not repos then
+    if repos == null then
         return g.error("Could not update repositories.")
     end if
 
@@ -262,6 +287,15 @@ g.func.updateLibs = function
         aptClient.add_repo(ip)
         aptClient.update
     end if
+
+    while not checkRepos
+        ip = g.func.getHackshop
+
+        output = output + g.const.indent + g.y1("Current repositories are missing either crypto.so or metaxploit.so.  Adding " + ip + "...") + g.const.nl
+
+        aptClient.add_repo(ip)
+        aptClient.update
+    end while
     
     metax = context.computer.File(context.path + "/metaxploit.so")
 
