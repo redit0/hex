@@ -49,12 +49,12 @@ g.func.loadLibs
 
 // Proxies
 g.func.getMap
-proxies = g.func.connectProxies
+//proxies = g.func.connectProxies
 
 clear_screen
 print g.func.getBanner
 print output
-print proxies
+//print proxies
 
 while true
 	if g.command == "" then
