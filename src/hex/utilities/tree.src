@@ -76,13 +76,54 @@ tree = function(args = null)
         end if
     end function
 
-    getTree = function(path)
-        files = path.get_folders + path.get_files
+    count = {"dirs": 0,"files": 0}
+
+    line = "<size=120%><mark=#666666>" + char(160) + "</mark></size>"
+    endLine = "<space=-0.1em><rotate=180>" + char(305) + "</rotate><space=0.2em>"
+    fileLine = "<space=-0.82em><cspace=-1>——</cspace><space=0.4em>"
+
+    walk = function(directory, prefix)
+        files = directory.get_folders + directory.get_files
+
+        if files == [] then return
+
+        temp = {}
 
         for file in files
-            g.util.tree.data.files.push(file)
+            temp[file.name] = file
+        end for
 
-            if file.is_folder then getTree(file)
+        indices = temp.indexes
+        indices.sort
+
+        files = []
+
+        for index in indices
+            files.push(temp[index])
+        end for
+
+        for index in range(0, files.len - 1)
+            file = files[index]
+
+            if index == files.len - 1 then
+                parts = [line + fileLine, "   "]
+            else
+                parts = [line + fileLine, line + "  "]
+            end if
+
+            line = g.const.indent
+            line = line + file.permissions.formatPermissions + " "
+            line = line + file.owner.formatUsername + "<pos=300>" + file.group.formatUsername + "<pos=450>"
+            line = line + prefix + parts[0] + file.getFileColor
+
+            print(line)
+
+            if file.is_folder then
+                count.dirs = count.dirs + 1
+                walk(file, prefix + parts[1])
+            else
+                count.files = count.files + 1
+            end if
         end for
     end function
 
@@ -113,49 +154,28 @@ tree = function(args = null)
 
     start = g.stack[idx].file.getFolder(path)
 
-    self.data.files = []
+    line = g.const.indent
+    line = line + start.permissions.formatPermissions + " "
+    line = line + start.owner.formatUsername + "<pos=300>" + start.group.formatUsername + "<pos=450>"
+    line = line + start.getFileColor
 
-    getTree(start)
+    print(line)    
 
-    startingLevel = path.matches("/").indexes.len
+    walk(start, "")
 
-    if path != "/" then startingLevel = startingLevel + 1
-
-    output = "<space=2.1em><size=120%>" + start.permissions.formatPermissions
-    output = output + " " + start.owner.formatUsername + "<pos=350>" + start.group.formatUsername
-    output = output + "<pos=494>.<space=2.2em>" + g.s2(start.path) + g.const.nl
-
-    files = {}
-
-    for temp in self.data.files
-        files[temp.sortKey] = temp
-    end for
+    if count.dirs == 1 then
+        totals = "1 directory, "
+    else
+        totals = count.dirs + " directories, "
+    end if
     
-    indices = files.indexes
-
-    indices.sort
-
-    for index in indices
-        file = files[index]
-
-        line = "<space=2.1em><size=120%>" + file.permissions.formatPermissions
-        line = line + " " + file.owner.formatUsername + "<pos=350>" + file.group.formatUsername
-        line = line + "<pos=500>"
-
-        // Calculate the number of levels down we are from the starting path and add the indents
-        levels = file.path.matches("/").indexes.len - startingLevel
-
-        line = line + g.const.tt*levels
-
-        // Write the file indicator and file name
-        line = line + g.d1("<mark=#666666><mspace=0.1>" + char(160) + "</mspace></mark>" + char(160) + "<space=-0.6em><cspace=-0.1em>———</cspace> " + file.getFileColor)
-
-        line = line + g.const.nl
-
-        output = output + line
-    end for
-
-    print(output)
+    if count.files == 1 then
+        totals = totals + "1 file"
+    else
+        totals = totals + count.files + " files"
+    end if
+    
+    print g.l2(totals)
 end function
 
 // Fill out the parts of this template, and then place it in the a folder called 'tools' in the same directory as the main hex binary file.

@@ -2,7 +2,7 @@ counts = {"dirs": 0, "files": 0}
 
 line = "<size=120%><mark=#666666>" + char(160) + "</mark></size>"
 endLine = "<space=-0.1em><rotate=180>" + char(305) + "</rotate><space=0.2em>"
-fileLine = "<space=-0.85em><cspace=-3>___</cspace><space=0.4em>"
+fileLine = "<space=-0.82em><cspace=-1>——</cspace><space=0.4em>"
 
 walk = function(directory, prefix)
     files = directory.get_folders + directory.get_files
