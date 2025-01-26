@@ -24,8 +24,7 @@ hack = function(args)
     // @return {string} - The formatted output string.
     output = function(results, public)
         if results == null or results == [] then
-            print g.const.indent + g.r1(g.const.indent + "No results found.")
-            return
+            return g.const.indent + g.r1(g.const.indent + "No results found.")
         end if
 
         output = g.const.nl + g.const.indent + g.s2("<size=115%><voffset=0.5em>Object <pos=350>Lan Address <pos=550>User</voffset></size>") + g.const.nl
@@ -271,6 +270,12 @@ hack = function(args)
     // @param {string} address - The address to use for the overflow.
     // @return {list} - List containing the dumped meta library or an empty list if not found.
     getRemoteLib = function(ip, port, address)
+        if g.hasIndex("proxy") then
+            context = g.stack[g.proxy]
+        else
+            context = g.stack[g.context.index]
+        end if
+
         if context.type != "shell" then
             print(g.const.indent + g.y1("Context must be a shell to use this tool on a remote target's libraries."))
         end if
@@ -379,7 +384,7 @@ hack = function(args)
                             item = result.createContext("bounce")
                             g.stack.add(item)
 
-                            g.util.clear.exec
+                            //g.util.clear.exec
                             print g.const.nl + g.const.indent + g.g1("Found computer object for " + args[1] + " with access level " + result.getUser(0))
                             return
                         else
@@ -412,7 +417,7 @@ hack = function(args)
 
                 output = output(results)
 
-                g.util.clear.exec
+                //g.util.clear.exec
                 print g.func.getPrompt
                 print(output)
                 return

@@ -22,7 +22,6 @@ import_code("hex/banner.src")
 import_code("hex/prompt.src")
 
 #include "hex/tools.src"
-#include "hex/utilities.src"
 
 import_code("hex/proxies.src")
 
@@ -46,10 +45,6 @@ g.func.init
 g.func.updateApt
 output = g.func.updateLibs
 g.func.loadLibs
-
-// Proxies
-g.func.getMap
-//proxies = g.func.connectProxies
 
 clear_screen
 print g.func.getBanner

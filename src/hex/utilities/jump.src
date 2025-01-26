@@ -15,8 +15,8 @@ doJump = function(args = null)
         return
     end if
 
-    metax = home.computer.File(home.path + "/metaxploit.so")
-    crypto = home.computer.File(home.path + "/crypto.so")
+    metax = home.computer.File(g.homePath + "/metaxploit.so")
+    crypto = home.computer.File(g.homePath + "/crypto.so")
     apt = g.func.findFile(home.computer.File("/"), "aptclient.so")
 
     home.shell.scp(metax.path, context.path, context.shell)
@@ -28,6 +28,12 @@ doJump = function(args = null)
     context.computer.touch(context.path, "loadlibs.src")
 
     file = context.computer.File(context.path + "/loadlibs.src")
+
+    if not file then
+        print(g.error("Failed to create loadlibs.src"))
+        return
+    end if
+
     file.set_content(src)
 
     context.shell.build(file.path, context.path)

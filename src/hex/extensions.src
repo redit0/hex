@@ -236,7 +236,14 @@ g.registerExtensions = function
 
         if source == "home" then
             item.path = "/root"
-            item.file = item.computer.File(item.path)
+            temp = item.computer.File(item.path)
+
+            if not temp then
+                temp = item.computer.File(current_path)
+                item.path = current_path
+            end if
+
+            item.file = temp
         else
             folder = g.func.findWritableFolder(item.file)
             if folder then

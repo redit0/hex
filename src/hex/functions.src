@@ -373,6 +373,8 @@ g.func.init = function
 
     context = get_shell.createContext("home")
 
+    g.homePath = context.path
+
     g.stack[g.context.index] = context
 
     g.stack[g.context.index].apt = g.func.getApt
@@ -382,4 +384,55 @@ g.func.loadLibs = function
     g.stack[g.context.index].apt = g.func.getApt
     g.stack[g.context.index].metax = include_lib(g.stack[g.context.index].path + "/metaxploit.so")
     g.stack[g.context.index].crypto = include_lib(g.stack[g.context.index].path + "/crypto.so")
+end function
+
+g.func.createFolders = function
+    home = g.stack["0"]
+    context = g.stack[g.context.index]
+
+    // Create targets folder
+    p = g.homePath + "/targets"
+
+    file = home.computer.File(p)
+
+    if not file then
+        result = home.computer.create_folder(g.homePath, "targets")
+
+        if typeof(result) == "string" then
+            print g.error(result)
+            return null
+        end if
+    end if
+
+    // Create public ip folder
+    p = p + "/" + context.computer.public_ip
+
+    file = home.computer.File(p)
+
+    if not file then
+        result = home.computer.create_folder(g.homePath + "/targets", context.computer.public_ip)
+
+        if typeof(result) == "string" then
+            print g.error(result)
+            return null
+        end if
+    end if
+
+    // Create local ip folder
+    p = p + "/" + context.computer.local_ip
+
+    file = home.computer.File(p)
+
+    if not file then
+        result = home.computer.create_folder(g.homePath + "/targets/" + context.computer.public_ip, context.computer.local_ip)
+
+        if typeof(result) == "string" then
+            print g.error(result)
+            return null
+        end if
+
+        file = home.computer.File(p)
+    end if
+
+    return file
 end function

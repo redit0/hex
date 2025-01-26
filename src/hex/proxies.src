@@ -21,7 +21,6 @@ end for
 
 g.func.getMap = function
     context = g.stack[g.context.index]
-    proxies = []
 
     mapFiles = g.func.findFiles(context.file.getRootFolder, "Map.conf")
 
@@ -35,58 +34,16 @@ g.func.getMap = function
         for account in obj.accounts
             prox = [account.ip, 22, account.user, account.password]
 
-            proxies.push(prox)
+            alreadyAdded = 0
+
+            for proxy in g.proxies
+                if proxy[0] == prox[0] and proxy[1] == prox[1] and proxy[2] == prox[2] then
+                    alreadyAdded = 1
+                    break
+                end if
+            end for
+
+            if not alreadyAdded then g.proxies.push(prox)
         end for
     end for
-    
-    g.proxies = g.proxies + proxies
-end function
-
-g.func.connectProxies = function
-    output = ""
-
-    for i in range(0, g.proxies.len - 1)
-        proxy = g.proxies[i]
-
-        if g.hasIndex("proxy") then
-            context = g.stack[g.proxy]
-        else
-            context = g.stack[g.context.index]
-        end if
-
-        if not context.shell then
-            output = output + g.error("Current context is not a shell.") + g.const.nl
-            return output            
-        end if
-
-        ip = proxy[0]
-        port = proxy[1]
-        user = proxy[2]
-        pass = proxy[3]
-
-        shell = context.shell.connect_service(ip, port, user, pass)
-
-        if shell == null then
-            output = output + g.error("Failed to connect to " + ip + ":" + port + " with " + user + ":" + pass) + g.const.nl
-            continue
-        else if typeof(shell) == "string" then
-            output = output + g.error(shell) + g.const.nl
-            continue
-        else if shell.classID == "ftpshell" then
-            output = output + g.error("Expected shell, got ftpshell instead.") + g.const.nl
-            continue
-        else
-            obj = shell.createContext("proxy (" + (i + 1) + ")")
-            obj.path = "/root"
-            key = g.stack.add(obj)
-            g.proxy = key
-            g.context.index = key
-            g.util.jump.exec
-            output = output + g.const.indent + g.g1("Connected to Proxy " + (i + 1) + " (" + ip + " : " + port + " with " + user + " : " + pass + ")") + g.const.nl
-        end if
-    end for
-
-    g.context.index = "0"
-
-    return output
 end function

@@ -140,6 +140,10 @@ doScan = function(args)
     end function
 
     scanAllPorts = function(ip)
+        if g.hasIndex("proxy") and g["proxy"] != "" and typeof(g["proxy"].to_int) == "number" then
+            context = g.stack[g.proxy]
+        end if
+
         if not context.shell then
             print(g.error("No shell available"))
             return
@@ -153,7 +157,7 @@ doScan = function(args)
 
         for port in ports
             if port.is_closed then continue
-            
+
             netSession = context.metax.net_use(ip, port.port_number)
 
             metaLib = netSession.dump_lib
@@ -168,6 +172,7 @@ doScan = function(args)
         metaLibs.push(metaLib)
 
         scanMetaLibs(metaLibs)
+        
         if not g.tools.scan.data.silent then
             doOutput(metaLibs)
         end if

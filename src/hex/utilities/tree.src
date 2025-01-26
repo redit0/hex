@@ -14,7 +14,7 @@ tree = function(args = null)
         end if
 
         if self == "d---------" or self == "----------" then
-            return g.d1("[" + self + "]")
+            return g.l2("[" + self + "]")
         else
             return g.s2("[" + self + "]")
         end if
@@ -25,7 +25,7 @@ tree = function(args = null)
             return self
         end if
 
-        if self == "root" then return g.d1("[" + self + "]") else return g.s2("[" + self + "]")
+        if self == "root" then return g.l2("[" + self + "]") else return g.s2("[" + self + "]")
     end function
 
     map.sortKey = function(self)
@@ -52,7 +52,7 @@ tree = function(args = null)
             if file.name[-3:] == ".so" then
                 return g.l3(file.name)
             else
-                return g.d1(file.name)
+                return g.l2(file.name)
             end if
         end if
 
@@ -78,9 +78,9 @@ tree = function(args = null)
 
     count = {"dirs": 0,"files": 0}
 
-    line = "<size=120%><mark=#666666>" + char(160) + "</mark></size>"
+    line = "<b><mark=#b3b3b3><mspace=0.1>" + char(160) + "</mspace></mark>" + char(160) + "</b></size>"
     endLine = "<space=-0.1em><rotate=180>" + char(305) + "</rotate><space=0.2em>"
-    fileLine = "<space=-0.82em><cspace=-1>——</cspace><space=0.4em>"
+    fileLine = "<space=-0.75em><cspace=-0.7>——</cspace><space=0.4em>"
 
     walk = function(directory, prefix)
         files = directory.get_folders + directory.get_files
@@ -111,12 +111,12 @@ tree = function(args = null)
                 parts = [line + fileLine, line + "  "]
             end if
 
-            line = g.const.indent
-            line = line + file.permissions.formatPermissions + " "
-            line = line + file.owner.formatUsername + "<pos=300>" + file.group.formatUsername + "<pos=450>"
-            line = line + prefix + parts[0] + file.getFileColor
+            output = g.const.indent + "<size=120%>"
+            output = output + file.permissions.formatPermissions + " "
+            output = output + file.owner.formatUsername + "<pos=350>" + file.group.formatUsername + "<pos=500>"
+            output = output + prefix + parts[0] + file.getFileColor
 
-            print(line)
+            print(output)
 
             if file.is_folder then
                 count.dirs = count.dirs + 1
@@ -154,12 +154,12 @@ tree = function(args = null)
 
     start = g.stack[idx].file.getFolder(path)
 
-    line = g.const.indent
-    line = line + start.permissions.formatPermissions + " "
-    line = line + start.owner.formatUsername + "<pos=300>" + start.group.formatUsername + "<pos=450>"
-    line = line + start.getFileColor
+    output = g.const.indent + "<size=120%>"
+    output = output + start.permissions.formatPermissions + " "
+    output = output + start.owner.formatUsername + "<pos=350>" + start.group.formatUsername + "<pos=495>"
+    output = output + ".  " + start.getFileColor
 
-    print(line)    
+    print(output)    
 
     walk(start, "")
 
@@ -175,7 +175,7 @@ tree = function(args = null)
         totals = totals + count.files + " files"
     end if
     
-    print g.l2(totals)
+    print g.const.ni + "<size=120%>" + g.l2(totals)
 end function
 
 // Fill out the parts of this template, and then place it in the a folder called 'tools' in the same directory as the main hex binary file.
