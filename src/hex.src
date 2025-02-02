@@ -15,7 +15,6 @@ import_code("hex/colors.src")
 import_code("hex/constants.src")
 import_code("hex/functions.src")
 import_code("hex/extensions.src")
-
 g.registerExtensions
 
 import_code("hex/banner.src")
@@ -24,6 +23,9 @@ import_code("hex/prompt.src")
 #include "hex/tools.src"
 
 import_code("hex/proxies.src")
+g.func.initProxies
+
+import_code("hex/rshell.src")
 
 if params.len > 0 then
 	if is_valid_ip(params[0]) then
@@ -45,11 +47,15 @@ g.func.init
 g.func.updateApt
 output = g.func.updateLibs
 g.func.loadLibs
+rs = g.func.initRshell
 
-clear_screen
-print g.func.getBanner
-print output
-//print proxies
+print(g.func.getBanner)
+print(output)
+
+if rs then
+	print(g.const.indent + "Configuring rshell server...")
+	print(rs)
+end if
 
 while true
 	if g.command == "" then

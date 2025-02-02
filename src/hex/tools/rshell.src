@@ -1,0 +1,25 @@
+rshellHelp = function()
+    text = g.const.ni + g.l3("Usage:","u") + g.const.ni
+    text = text + g.g2(self.name) + g.l2(" Displays a list of rshells, and adds them to the stack.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-i/infect/install] {ip} {port} {process_name}") + g.l2(" Installs the rshell client on a target. Uses the default rshell settings, or the provided ip, port, and process name if specified.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-i/infect/install] {process_name}") + g.l2(" Installs the rshell client on a target. Uses the default rshell settings, or the default ip and port, with the provided process name if specified.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-r/remove] [#]") + g.l2(" Kills the rshell client process on the provided rshell context and then restarts the rshell server process (specify which rshell by using the stack index number).") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-c/clear]") + g.l2(" Kills the rshell client process on all rshells, and restarts the rshell server process.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-s/start]") + g.l2(" Starts the rshell server process on the current context.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-e/end]") + g.l2(" Stops the rshell server process on the current context.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text.") + g.const.nl
+
+    print(text)
+end function
+
+doRshell = function(args)
+
+end function
+
+g.tools.rshell = {
+    "name": "rshell",
+    "shortDescription": "Manages the rshell server.",
+    "exec": @doRshell,
+    "help": @rshellHelp,
+    "data": {}
+}

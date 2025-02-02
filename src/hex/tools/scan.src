@@ -160,9 +160,15 @@ doScan = function(args)
 
             netSession = context.metax.net_use(ip, port.port_number)
 
-            metaLib = netSession.dump_lib
+            if not netSession then
+                print(g.error("Could not connect to " + ip + ":" + port.port_number))
+            else if typeof(netSession) == "string" then
+                print(g.error(netSession))
+            else
+                metaLib = netSession.dump_lib
 
-            metaLibs.push(metaLib)
+                metaLibs.push(metaLib)
+            end if
         end for
 
         netSession = context.metax.net_use(ip, 0)

@@ -3,7 +3,7 @@ aptHelp = function()
     text = text + g.g2(self.name) + g.b3(" [-i/install] [library.so] {path}") + g.l2(" Installs whichever library or program is specified in the parameters.  If a path is provided, the library is installed at that location, otherwise, it is installed in whatever location Hex is run from.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-l/list]") + g.l2(" Lists all available libraries and programs from all sources.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-s/sources]") + g.l2(" Lists all apt repositories that have been added to sources.txt.") + g.const.ni
-    text = text + g.g2(self.name) + g.b3(" [-a/add] [ip]") + g.l2(" Adds the specified IP address as a repository in sources.txt.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-a/add] {ip}") + g.l2(" Adds the specified IP address as a repository in sources.txt.  If no IP address is specified, adds a random hackshop.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-r/remove] [ip]") + g.l2(" Removes the specified IP address from the list of repositories in sources.txt.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text.") + g.const.nl
 
@@ -12,6 +12,11 @@ end function
 
 apt = function(args)
     context = g.stack[g.context.index]
+
+    if not context.apt then
+        print(g.error("Apt-get is not available in this context. (If this is a shell, try running 'jump'.)"))
+        return
+    end if
 
 ///////////////////////////////////////////////////////////////////////////
 //                               Functions                               //
@@ -29,25 +34,20 @@ apt = function(args)
     end function
 
     add = function(address)
-        aptClient = g.func.getApt()
-
-        return aptClient.add_repo(address)
+        return context.apt.add_repo(address)
     end function
 
     remove = function(address)
-        aptClient = g.func.getApt()
-
-        return aptClient.del_repo(address)
+        return context.apt.del_repo(address)
     end function
 
     getPackageList = function
         repos = g.func.getRepos
-        aptClient = g.func.getApt()
 
         packages = {}
 
         for repo in repos
-            packageList = aptClient.show(repo)
+            packageList = context.apt.show(repo)
 
             if packageList.is_match(char(10) + char(10)) then
                 tempList = packageList.split(char(10) + char(10))
@@ -69,7 +69,6 @@ apt = function(args)
         return packages
     end function
 
-
     if args == null or args == [] then
         self.help
         return
@@ -87,7 +86,20 @@ apt = function(args)
             return
         else if cmd == "add" or cmd == "-a" then
             if not opt then
-                print(g.error("Invalid number of arguments. (Usage: 'apt-get -a [ip address]')"))
+                hackshop = g.func.getHackshop
+
+                result = add(hackshop)
+
+                if typeof(result) == "string" and result.len > 0 then
+                    print(g.error(result))
+                else
+                    result = context.apt.update()
+                    if typeof(result) == "string" and result != "" then
+                        print(g.error(result))
+                    else
+                        print(g.const.indent + g.g1("Successfully added repository: " + opt))
+                    end if
+                end if
                 return
             else if not is_valid_ip(opt) then
                 print(g.error("Invalid parameter: " + opt))
@@ -95,12 +107,11 @@ apt = function(args)
             else
                 result = add(opt)
 
-                if result isa string and result.len > 0 then
+                if typeof(result) == "string" and result.len > 0 then
                     print(g.error(result))
                 else
-                    aptClient = g.func.getApt()
-                    result = aptClient.update()
-                    if result isa string and result != "" then
+                    result = context.apt.update()
+                    if typeof(result) == "string" and result != "" then
                         print(g.error(result))
                     else
                         print(g.const.indent + g.g1("Successfully added repository: " + opt))
@@ -118,7 +129,7 @@ apt = function(args)
             else
                 result = remove(opt)
 
-                if result isa string and result.len > 0 then
+                if typeof(result) == "string" and result.len > 0 then
                     print(g.error(result))
                 else
                     print(g.const.indent + g.g1("Successfully removed repository: " + opt))
@@ -127,6 +138,8 @@ apt = function(args)
             end if
         else if cmd == "list" or cmd == "-l" then
             packages = getPackageList
+
+            if packages == null then return
 
             output = g.const.nl
 
@@ -139,7 +152,6 @@ apt = function(args)
             print output
 
             return
-
         else if cmd == "install" or cmd == "-i" then
             if not opt then
                 print(g.error("Invalid number of arguments. (Usage: 'apt-get -i [library.so] {path}')"))
@@ -151,10 +163,9 @@ apt = function(args)
                     path = context.path
                 end if
 
-                aptClient = g.func.getApt()
-                result = aptClient.install(opt, path)
+                result = context.apt.install(opt, path)
 
-                if result isa string and result.len > 0 then
+                if typeof(result) == "string" and result.len > 0 then
                     print(g.error(result))
                 else
                     print(g.const.indent + g.g1("Successfully installed: " + opt))
@@ -163,7 +174,6 @@ apt = function(args)
             end if
         end if
     end if
-    print "Not Implemented"
 end function
 
 g.util["apt-get"] = {

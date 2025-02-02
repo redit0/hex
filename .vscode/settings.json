@@ -13,9 +13,9 @@
             ["60.203.222.112",22,"root","Kiese"],
             ["180.115.129.11",22,"root","Digonst"]
         ],
+        "rshell": ["164.134.123.34", 22, "root", "omerl"],
         "ip": "0.0.0.0",
         "pass": "redacted"
     },
-    "greybel.transpiler.ingameDirectory": "/bin/",
-    "greybel.transpiler.installer.active": false
+    "greybel.transpiler.ingameDirectory": "/bin/"
 }

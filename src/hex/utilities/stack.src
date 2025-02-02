@@ -87,7 +87,7 @@ g.stack.add = function(item)
     end function
 
     updateExtras = function
-        if item.source.indexOf("proxy") == null then
+        if item.source.indexOf("proxy") == null and item.source != "rs server" then
             if item.type == "shell" then
                 g.stack.add(item.computer.createContext(item.source))
             else if item.type == "computer" then
@@ -111,7 +111,7 @@ g.stack.add = function(item)
     end if
 
     for i in keys
-        if not i.to_int isa number then continue
+        if not typeof(i.to_int) == "number" then continue
 
         if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == item.type then
             if g.stack[i].user == "guest" or item.getUser == "root" then
@@ -138,7 +138,7 @@ g.stack.clear = function
 
     for i in keys
         if i.to_int isa number and i.to_int > 0 then
-            if not g.stack[i].source.is_match("proxy") then
+            if not g.stack[i].source.is_match("proxy") and g.stack[i].source != "rs server" then
                 g.stack.remove(i)
             end if
         end if

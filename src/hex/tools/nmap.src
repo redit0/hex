@@ -125,12 +125,12 @@ doNmap = function(address)
     // Devices/Ports
     devices = {}
 
-    usedPorts = router.used_ports
+    usedPorts = router.used_ports // List<port>
 
-    tempDevices = router.devices_lan_ip
+    tempDevices = router.devices_lan_ip // List<string> (IP Addresses)
 
     for port in usedPorts
-        if not tempDevices.indexOf(port.get_lan_ip) isa number then
+        if tempDevices.indexOf(port.get_lan_ip) == null then
             tempDevices.push(port.get_lan_ip)
         end if
     end for
@@ -148,6 +148,7 @@ doNmap = function(address)
 
         for usedPort in usedPorts
             if usedPort.get_lan_ip == device and devicePorts.indexOf(usedPort) == null then
+                print "Adding port to devicePorts Port Number: " + usedPort.port_number + ", Device: " + device
                 devicePorts.push(usedPort)
             end if
         end for

@@ -24,6 +24,7 @@ g.Target = {
     "metax": null,
     "crypto": null,
     "apt": null,
+    "rshell": null,
     "public": null,
     "local": null
-    }
+}

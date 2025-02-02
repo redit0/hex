@@ -1,23 +1,32 @@
-// g.proxies = [["ip address",22,"username","password"],["ip address",22,"username","password"]]
-g.proxies = []
-items = g.func.deserialize(#envar proxies)
+g.func.initProxies = function
+    temp = #envar proxies
 
-for item in items
-    ip = item[0]
-
-    if item[1] isa number then
-        port = item[1]
-    else if typeof(item[1]) == "string" and item[1].to_int isa number then
-        port = item[1].to_int
-    else
-        port = 22
+    if temp == null or temp == "" then
+        return
     end if
 
-    user = item[2]
-    pass = item[3]
+    // g.proxies = [["ip address",22,"username","password"],["ip address",22,"username","password"]]
+    g.proxies = []
 
-    g.proxies.push([ip,port,user,pass])
-end for
+    items = g.func.deserialize(temp)
+
+    for item in items
+        ip = item[0]
+
+        if item[1] isa number then
+            port = item[1]
+        else if typeof(item[1]) == "string" and item[1].to_int isa number then
+            port = item[1].to_int
+        else
+            port = 22
+        end if
+
+        user = item[2]
+        pass = item[3]
+
+        g.proxies.push([ip,port,user,pass])
+    end for
+end function
 
 g.func.getMap = function
     context = g.stack[g.context.index]

@@ -46,6 +46,7 @@ doLog = function(args)
     end function
 
     corrupt = function(context)
+        print g.const.indent + g.s2("Corrupting log file on " + context.public + "/" + context.local + "...")
         root = context.file.getRootFolder
 
         readable = findReadable(root)
@@ -104,7 +105,6 @@ doLog = function(args)
         download(context)
     else
         print(g.error("Invalid argument: " + args[0] + g.const.ni))
-        self.help
     end if
 end function
 

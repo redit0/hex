@@ -17,13 +17,15 @@ doProxy = function(args)
     connectProxies = function
         output = ""
 
+        startingIndex = g.context.index
+
         for i in range(0, g.proxies.len - 1)
             proxy = g.proxies[i]
 
             if g.hasIndex("proxy") then
                 context = g.stack[g.proxy]
             else
-                context = g.stack[g.context.index]
+                context = g.stack["0"]
             end if
 
             if not context.shell then
@@ -54,11 +56,12 @@ doProxy = function(args)
                 g.proxy = key
                 g.context.index = key
                 g.util.jump.exec
+                g.util.log.exec
                 output = output + g.const.indent + g.g1("Connected to Proxy " + (i + 1) + " (" + ip + " : " + port + " with " + user + " : " + pass + ")") + g.const.nl
             end if
         end for
 
-        g.context.index = "0"
+        g.context.index = startingIndex
 
         return output
     end function

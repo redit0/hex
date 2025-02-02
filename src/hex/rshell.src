@@ -1,0 +1,123 @@
+g.func.initRshell = function
+    temp = #envar rshell
+
+    if temp == null or temp == "" then
+        return
+    end if
+
+    rshell = g.func.deserialize(temp)
+
+    output = ""
+
+    if g.hasIndex("proxy") then
+        context = g.stack[g.proxy]
+    else
+        context = g.stack["0"]
+    end if
+
+    if context.type != "shell" or not context.shell then
+        return g.error("Invalid context type: " + context.type)
+    end if
+
+    ip = rshell[0]
+    user = rshell[2]
+    pass = rshell[3]
+    
+    if typeof(rshell[1]) == "string" and typeof(rshell[1].to_int) == "number" then
+        port = rshell[1].to_int
+    else if typeof(rshell[1]) == "number" then
+        port = rshell[1]
+    else
+        port = 22
+    end if
+
+    rshell = context.shell.connect_service(ip, port, user, pass)
+
+    if typeof(rshell) == "string" then
+        return g.error(rshell)
+    end if
+
+    if not rshell then
+        return g.error("Failed to connect to rshell server at the following IP: " + ip)
+    end if
+
+    rshellContext = rshell.createContext("rs server")
+    rshellContext.path = "/root"
+
+    key = g.stack.add(rshellContext)
+
+    g.rshell = key
+
+    previousIndex = g.context.index
+
+    g.context.index = key
+    
+    g.util.jump.exec
+
+    rshellFile = g.stack[key].computer.File(g.stack[key].path + "/librshell.so")
+
+    if not rshellFile then
+        print g.const.indent + g.s2("Installing librshell.so on " + g.stack[key].public + "/" + g.stack[key].local + "...")
+        while g.stack[key].apt.search("librshell.so").indexOf("not found") != null
+            hackshop = g.func.getHackshop
+    
+            g.stack[key].apt.add_repo(hackshop)
+            g.stack[key].apt.update
+        end while
+
+        g.stack[key].apt.install("librshell.so", g.stack[key].path)
+    end if
+
+    g.func.attachRshell
+
+    if g.stack[key].rshell then
+        g.stack[key].rshell.install_service
+        g.stack[key].rshell.start_service
+    end if
+
+    rshells = g.stack[key].metax.rshell_server
+
+    if typeof(rshells) == "string" then
+        output = output + g.error(rshells)
+    else
+        if rshells.len > 0 then
+            output = output + g.const.indent + g.s3("Adding " + rshells.len + " rshell(s) to the stack...")
+            for rs in rshells
+                rsContext = rs.createContext("rshell")
+                g.stack.add(rsContext)
+            end for
+        else
+            output = output + g.const.indent + g.l3("Rshell server started...")
+        end if
+    end if
+    g.util.log.exec
+    g.context.index = previousIndex
+
+    return output
+end function
+
+g.func.attachRshell = function
+    print g.const.indent + g.s2("Attaching rshell to " + g.stack[g.rshell].public + "/" + g.stack[g.rshell].local + "...")
+    context = g.stack[g.context.index]
+
+    src = "g = get_custom_object" + char(10) + "g.func.rshellLib"
+
+    context.computer.touch(context.path, "rshell.src")
+
+    file = context.computer.File(context.path + "/rshell.src")
+
+    if not file then
+        print(g.error("Failed to create rshell.src"))
+        return
+    end if
+
+    file.set_content(src)
+
+    context.shell.build(file.path, context.path)
+    context.shell.launch(context.path + "/rshell")
+
+    file.delete
+
+    file = context.computer.File(context.path + "/rshell")
+    file.delete
+end function
