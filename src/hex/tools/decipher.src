@@ -54,8 +54,6 @@ doDec = function(args = null)
                     if line.len > 0 then
                         creds = decipherLine(line)
 
-                        print creds
-
                         if creds[0] == "" then continue
 
                         if not results.hasIndex(creds[0]) then
@@ -94,45 +92,102 @@ doDec = function(args = null)
     end function
 
     doOutput = function(results)
-        if results == null or not results.indexes then
+        if results == null or not results.indexes or results.indexes.len == 0 then
             print g.const.nl + g.const.indent + g.s3("<size=120%>No credentials found.</size>") + g.const.nl
             return
         end if
 
-        if results.indexes.len > 0 then
-            output = g.const.nl + g.func.heading("Found Credentials") + g.const.nl
+        output = g.const.nl + g.func.heading("Found Credentials") + g.const.nl
 
+        if results.hasIndex("root") and results["root"].hasIndex("password") then
+            header = "root: " + g.g2(results["root"]["password"])
+            output = output + g.const.indent + "<size=115%><voffset=0.5em>" + g.s2(header) + "</voffset></size>" + g.const.nl
+        end if
+
+        for user in results.indexes.sort
+            if user == "root" then continue
+            header = user
+
+            if results[user].hasIndex("password") then
+                header = header + ": " + g.g2(results[user]["password"])
+            end if
+
+            output = output + g.const.indent + "<size=115%><voffset=0.5em>" + g.s2(header) + "</voffset></size>" + g.const.nl
+
+            if results[user].hasIndex("mail") then
+                output = output + g.const.indent*2 + g.s3("Mail:") + g.const.nl
+                output = output + g.const.indent*3 + g.s4("Username: ") + g.l3(results[user]["mail"][0]) + g.const.nl
+                output = output + g.const.indent*3 + g.s4("Password: ") + g.l3(results[user]["mail"][1]) + g.const.nl
+            end if
+
+            if results[user].hasIndex("bank") then
+                output = output + g.const.indent*2 + g.s3("Bank:") + g.const.nl
+                output = output + g.const.indent*3 + g.s4("Username: ") + g.l3(results[user]["bank"][0]) + g.const.nl
+                output = output + g.const.indent*3 + g.s4("Password: ") + g.l3(results[user]["bank"][1]) + g.const.nl
+            end if
+        end for
+
+        print(output, 1)
+    end function
+
+    save = function(results)
+        if results == null or not results.indexes then return
+
+        if results.indexes.len > 0 then
+            output = ""
             for user in results.indexes
                 header = user
 
                 if results[user].hasIndex("password") then
-                    header = header + ": " + g.g2(results[user]["password"])
+                    header = header + ": " + results[user]["password"]
                 end if
 
-                output = output + g.const.indent + "<size=115%><voffset=0.5em>" + g.s2(header) + "</voffset></size>" + g.const.nl
+                output = output + header + g.const.nl
 
                 if results[user].hasIndex("mail") then
-                    output = output + g.const.indent*2 + g.s3("Mail:") + g.const.nl
-                    output = output + g.const.indent*3 + g.s4("Username: ") + g.l3(results[user]["mail"][0]) + g.const.nl
-                    output = output + g.const.indent*3 + g.s4("Password: ") + g.l3(results[user]["mail"][1]) + g.const.nl
+                    output = output + g.const.indent + "Mail:" + g.const.nl
+                    output = output + g.const.indent*2 + "Username: " + results[user]["mail"][0] + g.const.nl
+                    output = output + g.const.indent*2 + "Password: " + results[user]["mail"][1] + g.const.nl
                 end if
 
                 if results[user].hasIndex("bank") then
-                    output = output + g.const.indent*2 + g.s3("Bank:") + g.const.nl
-                    output = output + g.const.indent*3 + g.s4("Username: ") + g.l3(results[user]["bank"][0]) + g.const.nl
-                    output = output + g.const.indent*3 + g.s4("Password: ") + g.l3(results[user]["bank"][1]) + g.const.nl
+                    output = output + g.const.indent + "Bank:" + g.const.nl
+                    output = output + g.const.indent*2 + "Username: " + results[user]["bank"][0] + g.const.nl
+                    output = output + g.const.indent*2 + "Password: " + results[user]["bank"][1] + g.const.nl
                 end if
             end for
 
-            print(output, 1)
-        else
-            print g.const.nl + g.const.indent + g.s3("<size=120%>No credentials found.</size>") + g.const.nl
+            home = g.stack["0"]
+            folder = g.func.createFolders
+
+            file = home.computer.File(folder.path + "/credentials.txt")
+
+            if not file then
+                result = home.computer.touch(folder.path, "credentials.txt")
+                if typeof(result) == "string" then
+                    print g.error(result)
+                    return
+                else if result == 1 then
+                    file = home.computer.File(folder.path + "/credentials.txt")
+                else
+                    print g.error("Failed to create credentials.txt")
+                    return
+                end if
+            end if
+
+            result = file.set_content(output)
+
+            if typeof(result) == "string" then
+                print g.error(result)
+            end if
         end if
+
     end function
 
     if args == null or args == [] then
         files = findFiles
         results = decipherFiles(files)
+        save(results)
         doOutput(results)
 
         return results

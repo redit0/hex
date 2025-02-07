@@ -186,13 +186,13 @@ hack = function(args)
 
                             if user == "root" then
                                 g.database[metalib.lib_name][metalib.version][mem][value] = "computer root"
-                                return temp
+                                if temp.local_ip == address then return temp
                             else if user == "guest" then
                                 g.database[metalib.lib_name][metalib.version][mem][value] = "computer guest"
-                                if result == null then result = temp
+                                if result == null and temp.local_ip == address then result = temp
                             else if user != null then
                                 g.database[metalib.lib_name][metalib.version][mem][value] = "computer user"
-                                result = temp
+                                if temp.local_ip == address then result = temp
                             else
                                 print g.const.indent + g.error("Could not determine user for object: " + typeof(temp))
                             end if
@@ -287,6 +287,12 @@ hack = function(args)
 
         metax = context.metax
         session = metax.net_use(ip, port)
+
+        if not session then
+            print(g.error("Could not connect to " + ip + ":" + port))
+            return []
+        end if
+
         metaLib = session.dump_lib
         if metaLib then
             result = {}
@@ -294,7 +300,7 @@ hack = function(args)
             result.address = address
             return [result]
         else
-            print(g.const.indent + g.error("Could not find service at " + ip + ":" + port))
+            print(g.error("Could not find service at " + ip + ":" + port))
             return []
         end if
     end function
@@ -430,9 +436,7 @@ hack = function(args)
                         g.tools.scan.exec([args[0]])
                         g.tools.scan.data.silent = 0
 
-                        metaLibs = getAllRemoteLibs(args[0])
-
-                        print metaLibs
+                        metaLibs = getRemoteLib(args[0], 0, args[1])
 
                         result = getBounce(metaLibs, args[1])
 

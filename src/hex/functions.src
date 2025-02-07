@@ -74,6 +74,41 @@ g.func.findFile = function(file, name)
     return null
 end function
 
+g.func.find = function(file, name, flags = null)
+    pattern = name.replace(".", "\\.").replace("*", ".*")
+    b = flags != null and flags.indexOf("b") != null // Binary Files
+    f = flags != null and flags.indexOf("f") != null // Folders
+    t = flags != null and flags.indexOf("t") != null // Text Files
+    r = flags != null and flags.indexOf("r") != null // Can Read
+    w = flags != null and flags.indexOf("w") != null // Can Write
+    x = flags != null and flags.indexOf("x") != null // Can Execute
+
+    results = []
+
+    if file.name.is_match(pattern) then
+        isMatch = 1
+
+        if b and (not file.is_binary or file.is_folder) then isMatch = 0
+        if f and not file.is_folder then isMatch = 0
+        if t and file.is_binary then isMatch = 0
+        if r and not file.has_permission("r") then isMatch = 0
+        if w and not file.has_permission("w") then isMatch = 0
+        if x and not file.has_permission("x") then isMatch = 0
+
+        if isMatch then results.push(file)
+    end if
+    
+    if file.is_folder then
+        files = file.get_files + file.get_folders
+
+        for temp in files
+            results = results + g.func.find(temp, name, flags)
+        end for
+    end if
+
+    return results
+end function
+
 // Recursively finds files by name.
 // @param {file} file - The starting file or folder.
 // @param {string} name - The name of the file to search for.

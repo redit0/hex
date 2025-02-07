@@ -21,6 +21,7 @@ g.Target = {
     "file": null,
     "user": null,
     "path": "/",
+    "currentPath": "/",
     "metax": null,
     "crypto": null,
     "apt": null,

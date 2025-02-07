@@ -151,6 +151,11 @@ doScan = function(args)
 
         router = get_router(ip)
 
+        if not router then
+            print(g.error("Could not find router at " + ip))
+            return
+        end if
+
         ports = router.used_ports
 
         metaLibs = []

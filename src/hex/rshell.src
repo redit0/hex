@@ -28,10 +28,10 @@ g.func.initRshell = function
     else if typeof(rshell[1]) == "number" then
         port = rshell[1]
     else
-        port = 22
+        port = 1222
     end if
 
-    rshell = context.shell.connect_service(ip, port, user, pass)
+    rshell = context.shell.connect_service(ip, 22, user, pass)
 
     if typeof(rshell) == "string" then
         return g.error(rshell)
@@ -46,7 +46,7 @@ g.func.initRshell = function
 
     key = g.stack.add(rshellContext)
 
-    g.rshell = key
+    g.rshell = { "key":key, "ip":ip, "port":port }
 
     previousIndex = g.context.index
 
@@ -96,8 +96,35 @@ g.func.initRshell = function
     return output
 end function
 
+g.func.getRshells = function
+    if not g.rshell then return g.error("Rshell server is not configured.")
+    if not g.stack[g.rshell.key].rshell then return g.error("Rshell lib reference is not set.")
+
+    g.stack[g.rshell.key].rshell.install_service
+    g.stack[g.rshell.key].rshell.start_service
+
+    rshells = g.stack[g.rshell.key].metax.rshell_server
+    output = ""
+
+    if typeof(rshells) == "string" then
+        output = output + g.error(rshells)
+    else
+        if rshells.len > 0 then
+            output = output + g.const.indent + g.s3("Adding " + rshells.len + " rshell(s) to the stack...")
+            for rs in rshells
+                rsContext = rs.createContext("rshell")
+                g.stack.add(rsContext)
+            end for
+        else
+            output = output + g.const.indent + g.l3("Rshell server started...")
+        end if
+    end if
+
+    return output
+end function
+
 g.func.attachRshell = function
-    print g.const.indent + g.s2("Attaching rshell to " + g.stack[g.rshell].public + "/" + g.stack[g.rshell].local + "...")
+    print g.const.indent + g.s2("Attaching rshell to " + g.stack[g.rshell.key].public + "/" + g.stack[g.rshell.key].local + "...")
     context = g.stack[g.context.index]
 
     src = "g = get_custom_object" + char(10) + "g.func.rshellLib"

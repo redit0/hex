@@ -136,7 +136,7 @@ tree = function(args = null)
             self.help
             return
         else if args[0] == "." then
-            path = g.stack[idx].path
+            path = g.stack[idx].currentPath
         else
             if not g.stack[idx].file then
                 print g.error("Current context does not have a file object available")

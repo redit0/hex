@@ -256,6 +256,7 @@ g.registerExtensions = function
 
         item.user = g.func.getUser(item.file)
 
+        item.currentPath = item.path
         return item
     end function
 end function

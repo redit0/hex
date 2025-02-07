@@ -5,6 +5,7 @@ g.context = {}
 g.command = ""
 g.database = {}
 g.func = {}
+g.fs = {}
 g.stack = {}
 g.target = {}
 g.tools = {}
@@ -26,6 +27,7 @@ import_code("hex/proxies.src")
 g.func.initProxies
 
 import_code("hex/rshell.src")
+import_code("hex/mail.src")
 
 if params.len > 0 then
 	if is_valid_ip(params[0]) then
@@ -49,13 +51,15 @@ output = g.func.updateLibs
 g.func.loadLibs
 rs = g.func.initRshell
 
-print(g.func.getBanner)
+print(g.func.getBanner, 1)
 print(output)
 
 if rs then
 	print(g.const.indent + "Configuring rshell server...")
 	print(rs)
 end if
+
+g.func.initMail
 
 while true
 	if g.command == "" then
@@ -77,6 +81,8 @@ while true
 		g.tools[key].exec(args)
 	else if g.util.hasIndex(key) then
 		g.util[key].exec(args)
+	else if g.fs.hasIndex(key) then
+		g.fs[key].exec(args)
 	else
 		print(g.error("Invalid argument: " + key))
 	end if

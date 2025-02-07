@@ -86,16 +86,43 @@ g.stack.add = function(item)
         end if
     end function
 
+    // Only add the lower-tier items if we already have one, and if it is of a lower access level than this new one would give us.
     updateExtras = function
         if item.source.indexOf("proxy") == null and item.source != "rs server" then
             if item.type == "shell" then
-                g.stack.add(item.computer.createContext(item.source))
-            else if item.type == "computer" then
-                temp = item.file.createContext(item.source)
-                temp.local = item.local
-                temp.public = item.public
+                add = 0
 
-                g.stack.add(temp)
+                for i in g.stack.indexes
+                    if typeof(i.to_int) != "number" then continue
+
+                    if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == "computer" then
+                        if g.stack[i].user == "guest" or item.user == "root" then
+                            add = 1
+                        end if
+                    end if
+                end for
+
+                if add then g.stack.add(item.computer.createContext(item.source))
+            else if item.type == "computer" then
+                add = 0
+
+                for i in g.stack.indexes
+                    if typeof(i.to_int) != "number" then continue
+
+                    if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == "file" then
+                        if g.stack[i].user == "guest" or item.user == "root" then
+                            add = 1
+                        end if
+                    end if
+                end for
+
+                if add then
+                    temp = item.file.createContext(item.source)
+                    temp.local = item.local
+                    temp.public = item.public
+
+                    g.stack.add(temp)
+                end if
             end if
         end if
     end function
@@ -139,6 +166,7 @@ g.stack.clear = function
     for i in keys
         if i.to_int isa number and i.to_int > 0 then
             if not g.stack[i].source.is_match("proxy") and g.stack[i].source != "rs server" then
+                if g.context.index == i then g.context.index = "0"
                 g.stack.remove(i)
             end if
         end if

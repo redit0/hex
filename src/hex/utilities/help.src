@@ -28,12 +28,23 @@ doHelp = function(args = null)
             output = output + g.const.indent + "  " + g.s4(util) + "<pos=200>" + g.l2(g.util[util].shortDescription) + g.const.nl
         end for
 
+        output = output + g.const.ni + g.s3("<voffset=0.5em><size=115%>Command Line:</size></voffset>") + g.const.nl
+
+        indexes = g.fs.indexes
+        indexes.sort
+
+        for fs in indexes
+            output = output + g.const.indent + "  " + g.s4(fs) + "<pos=200>" + g.l2(g.fs[fs].shortDescription) + g.const.nl
+        end for
+
         print output
     else if args.len == 1 then
         if g.tools.hasIndex(args[0]) then
-            print g.tools[args[0]].help
+            g.tools[args[0]].help
         else if g.util.hasIndex(args[0]) then
-            print g.util[args[0]].help
+            g.util[args[0]].help
+        else if g.fs.hasIndex(args[0]) then
+            g.fs[args[0]].help
         else
             print g.error("Command not found: " + args[0])
             return

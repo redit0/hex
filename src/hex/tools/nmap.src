@@ -11,7 +11,7 @@ end function
 /////////////////////////////////////////////////////////////////
 //                 Format and print the output.                //
 /////////////////////////////////////////////////////////////////
-getOutput = function(data, index)
+getOutput = function(data)
     retVal = ""
 
     // Network Info
@@ -202,7 +202,7 @@ nmap = function(args)
         if not self.data.hasIndex("saved") then
             print(g.error("No saved data to display."))
         else
-            doChoices
+            print getOutput(self.data.saved)
         end if
     else if args.len > 1 or args[0] == "-h" or args[0] == "help" then
         self.help

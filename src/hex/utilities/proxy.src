@@ -44,7 +44,7 @@ doProxy = function(args)
                 output = output + g.error("Failed to connect to " + ip + ":" + port + " with " + user + ":" + pass) + g.const.nl
                 continue
             else if typeof(shell) == "string" then
-                output = output + g.error(shell) + g.const.nl
+                output = output + g.error("Failed to connect to " + ip + " (" + shell + ")") + g.const.nl
                 continue
             else if shell.classID == "ftpshell" then
                 output = output + g.error("Expected shell, got ftpshell instead.") + g.const.nl
@@ -96,7 +96,7 @@ doProxy = function(args)
         self.help
     else if args.len == 1 and (args[0] == "-s" or args[0] == "start") then
         g.func.getMap
-        connectProxies
+        print connectProxies
     else if args.len == 1 and (args[0] == "-c" or args[0] == "clean") then
         cleanProxies(0)
     else if args.len == 1 and (args[0] == "-d" or args[0] == "disconnect") then
