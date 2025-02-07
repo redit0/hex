@@ -44,7 +44,7 @@ doRshell = function(args = null)
         end if
 
         user = g.stack[key].user
-        procs = g.stack[key].computer.show_procs
+        procs = g.stack[key].computer.show_procs.split(char(10))[1:]
 
         killed = 0
 
@@ -54,7 +54,7 @@ doRshell = function(args = null)
             pid = proc.split(" ")[1].to_int
 
             if cmd == "rshell_client" or cmd == "ps" then
-                if user == root or user == usr then
+                if user == "root" or user == usr then
                     g.stack[key].computer.close_program(pid)
                     killed = 1
                     break
@@ -69,7 +69,7 @@ doRshell = function(args = null)
                 pid = proc.split(" ")[1].to_int
 
                 if cmd != "dsession" and cmd != "Xorg" and cmd != "kernel_task" then
-                    if user == root or user == usr then
+                    if user == "root" or user == usr then
                         g.stack[key].computer.close_program(pid)
                     end if
                 end if
@@ -77,10 +77,11 @@ doRshell = function(args = null)
         end if
 
         if g.context.index == key then g.context.index = "0"
+        g.stack.remove(key)
     end function
 
     clear = function
-        for key in g.stack
+        for key in g.stack.indexes
             if typeof(key.to_int) == "number" and g.stack[key].source == "rshell" then
                 rem(key)
             end if
