@@ -106,7 +106,7 @@ generator.Init
 passwords = []
 count = 0
 
-while count < 1000 and passwords.len < 350000
+while count < 10000 and passwords.len < 100000
     temp = generator.Next
     if passwords.indexOf(temp) == null then
         passwords.push(temp)

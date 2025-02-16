@@ -626,8 +626,18 @@ g.func.run = function(src)
         return
     end if
 
-    context.computer.create_folder(context.path, "temp")
-    context.computer.create_folder(context.path + "/temp", "1")
+    file = context.computer.File(context.path + "/temp")
+
+    if not file then
+        context.computer.create_folder(context.path, "temp")
+    end if
+    
+    file = context.computer.File(context.path + "/temp/1")
+
+    if not file then
+        context.computer.create_folder(context.path + "/temp", "1")
+    end if
+    
     context.computer.touch(context.path + "/temp", "hex.src")
 
     file = context.computer.File(context.path + "/temp/hex.src")

@@ -3,6 +3,7 @@ rshellHelp = function()
     text = text + g.g2(self.name) + g.l2(" Adds new rshells to the stack.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-i/infect/install] {ip} {port} {process_name}") + g.l2(" Installs the rshell client on a target. Uses the default rshell settings, or the provided ip, port, and process name if specified.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-i/infect/install] {process_name}") + g.l2(" Installs the rshell client on a target. Uses the default rshell settings, or the default ip and port, with the provided process name if specified.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [info]") + g.l2(" Displays the default rshell server IP address and port.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-r/remove] [#]") + g.l2(" Kills the rshell client process on the provided rshell context and removes it from the stack (specify which rshell by using the stack index number).") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-c/clear]") + g.l2(" Kills the rshell client process on all rshells and removes them from the stack.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text.") + g.const.nl
@@ -32,6 +33,9 @@ doRshell = function(args = null)
         else
             print g.const.indent + g.l3("Rshell client installed on " + context.public + "/" + context.local + ".")
         end if
+
+        print g.func.getRshells
+        g.util.stack.exec
     end function
 
     rem = function(key)
@@ -101,9 +105,11 @@ doRshell = function(args = null)
         print g.func.getRshells
         g.util.stack.exec
     else if args[0] == "-i" or args[0] == "infect" or args[0] == "install" then
-        if not g.rshell.ip or not g.rshell.port then
-            print g.error("Rshell server ip and/or port are not set.")
-            return
+        if args.len == 1 or args.len == 2 then
+            if not g.rshell.ip or not g.rshell.port then
+                print g.error("Rshell server ip and/or port are not set.")
+                return
+            end if
         end if
         
         if args.len == 1 then // rshell -i
@@ -132,6 +138,12 @@ doRshell = function(args = null)
 
         g.func.getRshells
         g.util.stack.exec
+    else if args[0] == "info" then
+        if not g.rshell.ip or not g.rshell.port then
+            print g.const.indent + g.o1("Rshell server ip and/or port are not set.")
+            return
+        end if
+        print g.const.indent + g.o1("IP Address: " + g.rshell.ip + ", Port: " + g.rshell.port)
     else if args[0] == "-r" or args[0] == "remove" then
         if args.len == 2 then
             rem(args[1])

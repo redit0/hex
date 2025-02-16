@@ -21,14 +21,20 @@ doJump = function(args = null)
     crypto = home.computer.File(g.homePath + "/crypto.so")
     apt = g.func.findFile(home.computer.File("/"), "aptclient.so")
 
+    file = context.computer.File(context.path + "/temp")
+
+    if not file then
+        context.computer.create_folder(context.path, "temp")
+    end if
+
     home.shell.scp(metax.path, context.path + "/temp", context.shell)
     home.shell.scp(crypto.path, context.path + "/temp", context.shell)
     home.shell.scp(apt.path, context.path + "/temp", context.shell)
 
     src = "g = get_custom_object" + char(10)
     src = src + "g.stack[g.context.index].apt = g.func.getApt" + char(10)
-    src = src + "g.stack[g.context.index].metax = include_lib(g.stack[g.context.index].path + ""/temp/metaxploit.so"")" + char(10)
-    src = src + "g.stack[g.context.index].crypto = include_lib(g.stack[g.context.index].path + ""/temp/crypto.so"")"
+    src = src + "g.stack[g.context.index].metax = include_lib(""" + g.stack[g.context.index].path + "/temp/metaxploit.so"")" + char(10)
+    src = src + "g.stack[g.context.index].crypto = include_lib(""" + g.stack[g.context.index].path + "/temp/crypto.so"")"
 
     g.func.run(src)
 end function
