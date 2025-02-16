@@ -54,7 +54,7 @@ g.func.initRshell = function
     
     g.util.jump.exec
 
-    rshellFile = g.stack[key].computer.File(g.stack[key].path + "/librshell.so")
+    rshellFile = g.stack[key].computer.File("/lib/librshell.so")
 
     if not rshellFile then
         print g.const.indent + g.s2("Installing librshell.so on " + g.stack[key].public + "/" + g.stack[key].local + "...")
@@ -65,7 +65,7 @@ g.func.initRshell = function
             g.stack[key].apt.update
         end while
 
-        g.stack[key].apt.install("librshell.so", g.stack[key].path)
+        g.stack[key].apt.install("librshell.so", "/lib")
     end if
 
     g.func.attachRshell

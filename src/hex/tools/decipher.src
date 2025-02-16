@@ -1,6 +1,6 @@
 decHelp = function(self)
     text = g.const.ni + g.l3("Usage:","u") + g.const.ni
-    text = text + g.g2(self.name) + g.b3(" {credentials or password}") + g.l2(" Searches file system for all passwd, Mail, Bank, and Map files.  Deciphers and lists any credentials it finds in them.  If an encrypted password (or credentials set in the format username:encrypted_passsword) is passed in, it deciphers that instead.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" {credentials or password}") + g.l2(" Searches file system for all passwd files.  Optionally add 'bank' or 'mail' as an argument to decipher those files instead, or 'all' to decipher all files.  Deciphers and lists any credentials it finds in them.  If an encrypted password (or a set of credentials in the format username:encrypted_passsword) is passed in, it deciphers that instead.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
 
     print(text)
@@ -23,8 +23,17 @@ doDec = function(args = null)
         return [username, password]
     end function
 
-    findFiles = function
-        fileNames = ["Mail.txt", "Bank.txt", "passwd"]
+    findFiles = function(which)
+        if which == "all" then
+            fileNames = ["passwd","Mail.txt","Bank.txt"]
+        else if which == "mail" then
+            fileNames = ["Mail.txt"]
+        else if which == "bank" then
+            fileNames = ["Bank.txt"]
+        else
+            fileNames = ["passwd"]
+        end if
+
         root = context.file.getRootFolder
 
         files = []
@@ -195,6 +204,13 @@ doDec = function(args = null)
         if args[0] == "-h" or args[0] == "help" then
             self.help
             return
+        else if args[0] == "all" or args[0] == "mail" or args[0] == "bank" then
+            files = findFiles(args[0])
+            results = decipherFiles(files)
+            save(results)
+            doOutput(results)
+
+            return results
         else
             credentials = decipherLine(args[0])
 

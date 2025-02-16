@@ -7,58 +7,21 @@ lockdownHelp = function(self)
 end function
 
 lockdown = function(args = null)
-    setPerms = function(obj)
-        if obj.permissions != "d---------" or obj.permissions != "----------" then
-            result = obj.chmod("u-rwx")
-            if result != "" then print(g.error(result))
-            result = obj.chmod("g-rwx")
-            if result != "" then print(g.error(result))
-            result = obj.chmod("o-rwx")
-            if result != "" then print(g.error(result))
-        end if
-    end function
-
     setHomePerms = function(obj)
         result = obj.chmod("g+rx")
         if result != "" then print(g.error(result))
     end function
 
-    doLockdown = function(dir, home, excludes)
-        print(g.const.indent + g.l2("Locking " + dir.path + "..."))
+    walk = function(file)
+        excludes = ["sudo","Terminal","Terminal.exe","Mail","Mail.exe","Map","Map.exe","Chat","Chat.exe","Settings.exe","Manual","Manual.exe"]
 
-        setPerms(dir)
-
-        dir.set_owner("root")
-        dir.set_group("root")
-
-        for folder in dir.get_folders
-            doLockdown(folder, home, excludes)
+        for item in file.get_files
+            if excludes.indexOf(item.name) != null then setHomePerms(item)
         end for
 
-        for file in dir.get_files
-            if not file.owner == "root" or not file.group == "root" then
-                file.set_owner("root")
-                file.set_group("root")
-            end if
-
-            if file.name == "Mail.txt" or file.name == "Bank.txt" or (file.name == "passwd" and file.path != "/bin/passwd") then
-                print(g.const.indent + g.o1("Deleting " + file.path + "..."))
-                result = file.delete
-                if result != "" then
-                    print(g.error(result))
-                else
-                    continue
-                end if
-            end if
-
-            setPerms(file)
-
-            if home and typeof(excludes.indexOf(file.name)) == "number" then
-                setHomePerms(file)
-            end if
+        for folder in file.get_folders
+            walk(folder)
         end for
-
-        return
     end function
 
     if args != null and args.len > 0 then
@@ -70,18 +33,8 @@ lockdown = function(args = null)
 
     idx = g.context.index
 
-    excludes = ["sudo","Terminal","Terminal.exe","Mail","Mail.exe","Map","Map.exe","Chat","Chat.exe","Settings.exe","Manual","Manual.exe"]
-
     file = g.stack[idx].file
     comp = g.stack[idx].computer
-
-    guest = file.getGuestFolder
-
-    if (guest != null) then
-            print(g.const.indent + g.o1("Deleting guest directory..."))
-            result = guest.delete
-            if result != "" then print(g.error(result))
-    end if
 
     home = 0
 
@@ -92,24 +45,61 @@ lockdown = function(args = null)
             name = proc.split(" ")[4]
 
             if name == "Xorg" then home = 1
+            break
         end for
     end if
 
+    if home then print(g.const.indent + g.b3("Home computer detected...") + g.const.nl)
+
     root = file.getRootFolder
 
-    if (home) then print(g.const.indent + g.b3("Home computer detected...") + g.const.nl)
+    guest = g.func.find(root, "guest", "fw")
 
-    doLockdown(root, home, excludes)
+    if guest.len > 0 then
+        print g.const.indent + g.o1("Deleting guest directory...")
+        result = guest[0].delete
+        if result != "" then print g.error(result)
+    end if
+
+    banks = g.func.find(root, "Bank.txt", "tw")
+
+    for bank in banks
+        print g.const.indent + g.o1("Deleting file: " + bank.path)
+        result = bank.delete
+        if result != "" then print g.error(result)
+    end for
+
+    mails = g.func.find(root, "Mail.txt", "tw")
+
+    for mail in mails
+        print g.const.indent + g.o1("Deleting file: " + mail.path)
+        result = mail.delete
+        if result != "" then print g.error(result)
+    end for
+
+    km = g.func.find(root, "kernel_module.so", "bw")
+
+    for m in km
+        if m.path == "/lib/kernel_module.so" then
+            print g.const.indent + g.o1("Deleting file: " + m.path)
+            result = m.delete
+            if result != "" then print g.error(result)
+        end if
+    end for
+
+    root.chmod("u-rwx", 1)
+    root.chmod("g-rwx", 1)
+    root.chmod("o-rwx", 1)
+    root.set_owner("root", 1)
+    root.set_group("root", 1)
+
+    walk(root)
 
     print(g.const.ni + g.g2("System locked down."))
     wait(3)
-    g.util.clear.exec
+    //g.util.clear.exec
     return
 end function
-
-// Fill out the parts of this template, and then place it in the a folder called 'tools' in the same directory as the main hex binary file.
-// You can leave it as src code (name it with a .src file extension), otherwise hex will attempt to load it as a binary file that has been built with the
-// 'allow import' flag set.
 
 g.util.lockdown = {
     "name": "lockdown",

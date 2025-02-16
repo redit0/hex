@@ -309,7 +309,7 @@ hack = function(args)
     // @param {string} ip - The IP address to scan.
     // @return {list} - List of all remote meta libraries.
     getAllRemoteLibs = function(ip)
-        router = get_router(ip)
+        router = g.func.getRouter(ip)
         ports = []
         if is_lan_ip(ip) then
             for port in router.device_ports(ip)
@@ -462,7 +462,7 @@ hack = function(args)
                     g.tools.scan.exec([args[0], args[1]])
                     g.tools.scan.data.silent = 0
 
-                    router = get_router(args[0])
+                    router = g.func.getRouter(args[0])
 
                     if is_lan_ip(args[0]) then
                         ports = router.device_ports(args[0])
@@ -504,7 +504,7 @@ hack = function(args)
 
                 print g.l3("<size=120%>The output will pause after a possible password reset.  Press enter to resume script execution.</size>")
 
-                router = get_router(args[0])
+                router = g.func.getRouter(args[0])
 
                 results = getObjects(metaLibs, router.public_ip)
 
@@ -515,6 +515,11 @@ hack = function(args)
                 print(output)
                 return
             end if
+        else if args[0] == "random" then
+            ran = g.func.getRandomIp
+
+            g.command = "hack " + ran
+            return
         else
             self.help
             return

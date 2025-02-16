@@ -40,6 +40,9 @@ g.func.findFolder = function(folder, path)
     return null
 end function
 
+// Finds a writable folder starting from the given file.
+// @param {file} file - The starting file or folder.
+// @return {folder|null} - The writable folder or null if not found.
 g.func.findWritableFolder = function(file)
     if file.is_folder and file.has_permission("w") then return file
 
@@ -74,8 +77,24 @@ g.func.findFile = function(file, name)
     return null
 end function
 
+// **Find:**
+// Finds files (and folders) matching a pattern with optional flags.  Use * as a wildcard character.
+// @description **Flags:**
+// @description  b - Binary Files (excluding folders)
+// @description  f - Folders Only
+// @description  t - Text Files
+// @description  r - Can Read
+// @description  w - Can Write
+// @description  x - Can Execute
+// @example g.func.find(file, "*.so", "br") // Finds all readable libraries (binary files ending in ".so" with the permission "r")
+// @example g.func.find(file, "passwd", "t") // Finds all text files named "passwd"
+// @example g.func.find(file, "guest", "f") // Finds all folders named "guest"
+// @param {file} file - The starting file or folder.
+// @param {string} name - The pattern to match file names against.
+// @param {string|null} flags - Optional flags to filter results.
+// @return {list<file>} - The list of matching files.
 g.func.find = function(file, name, flags = null)
-    pattern = name.replace(".", "\\.").replace("*", ".*")
+    pattern = name.replace("\.", "\.").replace("\*", ".*")
     b = flags != null and flags.indexOf("b") != null // Binary Files
     f = flags != null and flags.indexOf("f") != null // Folders
     t = flags != null and flags.indexOf("t") != null // Text Files
@@ -387,7 +406,7 @@ g.func.getHackshop = function
         ip = g.func.getRandomIp
 
         if not is_lan_ip(ip) then
-            router = get_router(ip)
+            router = g.func.getRouter(ip)
 
             if not router then continue
 
@@ -417,12 +436,16 @@ g.func.init = function
     g.stack[g.context.index].apt = g.func.getApt
 end function
 
+// Loads the necessary libraries for the current context.
+// @return {none}
 g.func.loadLibs = function
     g.stack[g.context.index].apt = g.func.getApt
     g.stack[g.context.index].metax = include_lib(g.stack[g.context.index].path + "/metaxploit.so")
     g.stack[g.context.index].crypto = include_lib(g.stack[g.context.index].path + "/crypto.so")
 end function
 
+// Loads the remote shell library for the current context.
+// @return {none}
 g.func.rshellLib = function
     if not g.stack[g.context.index].computer then
         print(g.error("No computer in the current context."))
@@ -446,6 +469,8 @@ g.func.rshellLib = function
     g.stack[g.context.index].rshell = lib
 end function
 
+// Creates necessary folders for the current context.
+// @return {file|null} - The created folder or null if an error occurred.
 g.func.createFolders = function
     home = g.stack["0"]
     context = g.stack[g.context.index]
@@ -465,12 +490,12 @@ g.func.createFolders = function
     end if
 
     // Create public ip folder
-    p = p + "/" + context.computer.public_ip
+    p = p + "/" + context.public
 
     file = home.computer.File(p)
 
     if not file then
-        result = home.computer.create_folder(g.homePath + "/targets", context.computer.public_ip)
+        result = home.computer.create_folder(g.homePath + "/targets", context.public)
 
         if typeof(result) == "string" then
             print g.error(result)
@@ -479,12 +504,12 @@ g.func.createFolders = function
     end if
 
     // Create local ip folder
-    p = p + "/" + context.computer.local_ip
+    p = p + "/" + context.local
 
     file = home.computer.File(p)
 
     if not file then
-        result = home.computer.create_folder(g.homePath + "/targets/" + context.computer.public_ip, context.computer.local_ip)
+        result = home.computer.create_folder(g.homePath + "/targets/" + context.public, context.local)
 
         if typeof(result) == "string" then
             print g.error(result)
@@ -495,4 +520,128 @@ g.func.createFolders = function
     end if
 
     return file
+end function
+
+g.func.getRouter = function(ip = null)
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Current context is not a shell.")
+        return
+    end if
+
+    if typeof(@ip) == "string" and is_valid_ip(ip) then
+        src = "g = get_custom_object" + char(10) + "g.temp = get_router(""" + ip + """)"
+    else if @ip == null then
+        src = "g = get_custom_object" + char(10) + "g.temp = get_router"
+    else
+        print g.error("Invalid parameter: " + typeof(ip) + ": " + ip)
+        return
+    end if
+
+    g.func.run(src)
+
+    if not g.hasIndex("temp") then
+        print g.error("Something went wrong!!")
+        return
+    else
+        router = g.temp
+        g.remove("temp")
+        return router
+    end if
+end function
+
+g.func.getSwitch = function(ip)
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Current context is not a shell.")
+        return
+    end if
+
+    if typeof(@ip) != "string" or not is_valid_ip(ip) then
+        print g.error("Invalid parameter: " + typeof(@ip) + ": " + ip)
+        return
+    end if
+
+    src = "g = get_custom_object" + char(10) + "g.temp = get_switch(""" + ip + """)"
+
+    g.func.run(src)
+
+    if not g.hasIndex("temp") then
+        print g.error("Something went wrong!!")
+        return
+    else
+        switch = g.temp
+        g.remove("temp")
+        return switch
+    end if
+end function
+
+g.func.getShell = function(user, password)
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Current context is not a shell.")
+        return
+    end if
+
+    if typeof(@user) == "string" and typeof(@password) == "string" then
+        src = "g = get_custom_object" + char(10) + "g.temp = get_shell(""" + user + """, """ + password + """)"
+    else
+        src = "g = get_custom_object" + char(10) + "g.temp = get_shell"
+    end if
+
+    g.func.run(src)
+
+    if not g.hasIndex("temp") then
+        print g.error("Something went wrong!!")
+        return
+    else if typeof(g.temp) == "string" then
+        print g.error(g.temp)
+        g.remove("temp")
+        return
+    else if typeof(g.temp) == "shell" then
+        shell = g.temp
+        g.remove("temp")
+        return shell
+    else
+        print g.error("Something has gone wrong!!")
+        print g.error("typeof(g.temp): " + typeof(g.temp))
+        g.remove("temp")
+        return
+    end if
+end function
+
+g.func.run = function(src)
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Current context is not a shell.")
+        return
+    end if
+
+    if typeof(@src) != "string" then
+        print g.error("Invalid parameter: " + typeof(@src))
+        return
+    end if
+
+    context.computer.create_folder(context.path, "temp")
+    context.computer.create_folder(context.path + "/temp", "1")
+    context.computer.touch(context.path + "/temp", "hex.src")
+
+    file = context.computer.File(context.path + "/temp/hex.src")
+
+    if not file then
+        print g.error("Failed to create hex.src")
+        return
+    end if
+
+    file.set_content(src)
+
+    context.shell.build(file.path, context.path + "/temp")
+    context.shell.launch(context.path + "/temp/hex")
+
+    dir = context.computer.File(context.path + "/temp")
+    dir.move(context.path + "/temp/1", dir.name)
 end function

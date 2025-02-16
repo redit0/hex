@@ -13,10 +13,10 @@
             ["60.203.222.112",22,"root","Kiese"],
             ["180.115.129.11",22,"root","Digonst"]
         ],
-        "rshell": ["52.99.82.109", 10000, "root", "jjjjj"],
+        "rshell": ["180.74.61.30", 10000, "root", "Hone"],
         "ip": "0.0.0.0",
         "pass": "redacted",
-        "emailAddress": "intrepid@blacrontief.org",
+        "emailAddress": "intrepid@wuviwilem.info",
         "emailPassword": "galaxy"
     },
     "greybel.transpiler.ingameDirectory": "/bin/"

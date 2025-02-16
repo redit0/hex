@@ -95,13 +95,13 @@ doLog = function(args)
 
     if args == null or args == [] then
         corrupt(context)
-    else if args[0] == "-h" or args[0] == "-help" then
+    else if args[0] == "-h" or args[0] == "help" then
         self.help
-    else if args[0] == "-a" or args[0] == "-all" then
+    else if args[0] == "-a" or args[0] == "all" then
         for c in g.stack.indexes
             if c != "0" and typeof(c.to_int) == "number" then corrupt(g.stack[c])
         end for
-    else if args[0] == "-d" or args[0] == "-download" then
+    else if args[0] == "-d" or args[0] == "download" then
         download(context)
     else
         print(g.error("Invalid argument: " + args[0] + g.const.ni))

@@ -149,7 +149,7 @@ doScan = function(args)
             return
         end if
 
-        router = get_router(ip)
+        router = g.func.getRouter(ip)
 
         if not router then
             print(g.error("Could not find router at " + ip))

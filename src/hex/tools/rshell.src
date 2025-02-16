@@ -20,8 +20,10 @@ doRshell = function(args = null)
         end if
 
         if name then
+            print g.const.indent + g.o1("Installing rshell_client with IP: " + @ip + ", port: " + @port + ", and name: " + @name)
             result = context.metax.rshell_client(ip, port, name)
         else
+            print g.const.indent + g.o1("Installing rshell_client with IP: " + @ip + ", port: " + @port + ", and name: rshell_client")
             result = context.metax.rshell_client(ip, port)
         end if
 
@@ -42,6 +44,8 @@ doRshell = function(args = null)
             print g.error("The specified context is not an rshell.")
             return
         end if
+
+        print g.stack[key].computer.show_procs
 
         user = g.stack[key].user
         procs = g.stack[key].computer.show_procs.split(char(10))[1:]

@@ -18,5 +18,6 @@ import_code("utilities/terminal.src")
 import_code("utilities/proxy.src")
 import_code("utilities/log.src")
 import_code("utilities/hackshop.src")
+import_code("utilities/ip.src")
 
 import_code("fs/cd.src")
