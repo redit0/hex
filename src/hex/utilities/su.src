@@ -1,6 +1,6 @@
 sudoHelp = function()
     text = g.const.ni + g.l3("Usage:","u") + g.const.ni
-    text = text + g.g2(self.name) + g.l2(" Attempts to get a root shell using brute force attack against root credentials.") + g.const.nl
+    text = text + g.g2(self.name) + g.l2(" (Not Implimented) Attempts to get a root shell using brute force attack against root credentials.") + g.const.nl
     text = text + g.g2(self.name) + g.b3(" [username] [password]") + g.l2(" Attempts to get a shell using the provided credentials.") + g.const.nl
     text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
 
