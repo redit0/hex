@@ -13,7 +13,7 @@ lockdown = function(args = null)
     end function
 
     walk = function(file)
-        excludes = ["sudo","Terminal","Terminal.exe","Mail","Mail.exe","Map","Map.exe","Chat","Chat.exe","Settings.exe","Manual","Manual.exe"]
+        excludes = ["sudo","Terminal","Terminal.exe","Mail","Mail.exe","Map","Map.exe","Chat","Chat.exe","Settings.exe","Manual","Manual.exe","autoexec"]
 
         for item in file.get_files
             if excludes.indexOf(item.name) != null then setHomePerms(item)
@@ -77,6 +77,14 @@ lockdown = function(args = null)
         if result != "" then print g.error(result)
     end for
 
+    trashes = g.func.find(root, ".Trash", "fw")
+
+    for trash in trashes
+        print g.const.indent + g.o1("Deleting file: " + trash.path)
+        result = trash.delete
+        if result != "" then print g.error(result)
+    end for
+
     km = g.func.find(root, "kernel_module.so", "bw")
 
     for m in km
@@ -96,8 +104,6 @@ lockdown = function(args = null)
     walk(root)
 
     print(g.const.ni + g.g2("System locked down."))
-    wait(3)
-    //g.util.clear.exec
     return
 end function
 
