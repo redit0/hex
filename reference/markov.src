@@ -103,10 +103,10 @@ generator = new MarkovNameGenerator
 
 generator.Init
 
-passwords = []
+passwords = generator._samplePasswords.split(",")
 count = 0
 
-while count < 2000 and passwords.len < 80000
+while count < 2000 and passwords.len < 85000
     temp = generator.Next
     if passwords.indexOf(temp) == null then
         passwords.push(temp)

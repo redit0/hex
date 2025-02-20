@@ -83,9 +83,6 @@ doRshell = function(args = null)
                 end if
             end for
         end if
-
-        if g.context.index == key then g.context.index = "0"
-        g.stack.remove(key)
     end function
 
     clear = function

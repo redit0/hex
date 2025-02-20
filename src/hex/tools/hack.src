@@ -88,13 +88,13 @@ hack = function(args)
                     
                     if type == "number" then
                         input = user_input("")
-                        pattern = "user ([a-zA-Z0-9]+) modified"
+                        pattern = "change password for user ([a-zA-Z0-9]+)"
                         if input.is_match(pattern) then
                             result.type = "password reset"
                             result.address = address
 
                             match = input.matches(pattern)
-                            user = match[match.indexes[0]].split(" ")[1]
+                            user = match[match.indexes[0]].split(" ")[4]
 
                             if user == "root" then
                                 result.user = g.g1(user)
@@ -129,13 +129,13 @@ hack = function(args)
                     results.push(result)
 
                     if savedResult == "" then
-                        if type == "shell" or type == "computer" or type == "file" then
-                            user = temp.getUser(0)
+                        if type == "shell" or type == "computer" or type == "file" or result.type == "password reset" then
+                            user = result.user
 
                             if user == "root" or user == "guest" then
                                 g.database[metalib.lib_name][metalib.version][mem][value] = type + " " + user
                             else if user != null then
-                                g.database[metalib.lib_name][metalib.version][mem][value] = type + " user"
+                                g.database[metalib.lib_name][metalib.version][mem][value] = type + " user (" + user + ")"
                             end if
                         else
                             g.database[metalib.lib_name][metalib.version][mem][value] = type

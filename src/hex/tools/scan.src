@@ -66,7 +66,27 @@ doScan = function(args)
 
             if not g.database[metaLib.lib_name].hasIndex(metaLib.version) then
                 g.database[metaLib.lib_name][metaLib.version] = {}
+            end if
 
+            rescan = 0
+
+            // Check to see if we need to rescan this lib/version.
+            mems = g.database[lib][version].indexes
+
+            for mem in mems
+                if rescan == 1 then break
+                values = g.database[lib][version][mem].indexes
+
+                for value in values
+                    if rescan == 1 then break
+                    if g.database[lib][version][mem][value] == "" then
+                        rescan = 1
+                        break
+                    end if
+                end for
+            end for
+
+            if rescan then
                 mems = g.stack["0"].metax.scan(metaLib)
 
                 for mem in mems

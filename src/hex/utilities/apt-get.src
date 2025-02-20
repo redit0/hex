@@ -1,6 +1,6 @@
 aptHelp = function()
     text = g.const.ni + g.l3("Usage:","u") + g.const.ni
-    text = text + g.g2(self.name) + g.b3(" [-i/install] [library.so] {path}") + g.l2(" Installs whichever library or program is specified in the parameters.  If a path is provided, the library is installed at that location, otherwise, it is installed in whatever location Hex is run from.") + g.const.ni
+    text = text + g.g2(self.name) + g.b3(" [-i/install] [library.so] {path}") + g.l2(" Installs whichever library or program is specified in the parameters.  If a path is provided, the library is installed at that location, otherwise, it is installed in whatever location HEX is run from.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-l/list]") + g.l2(" Lists all available libraries and programs from all sources.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-s/sources]") + g.l2(" Lists all apt repositories that have been added to sources.txt.") + g.const.ni
     text = text + g.g2(self.name) + g.b3(" [-a/add] {ip}") + g.l2(" Adds the specified IP address as a repository in sources.txt.  If no IP address is specified, adds a random hackshop.") + g.const.ni
