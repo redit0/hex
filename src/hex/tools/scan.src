@@ -71,15 +71,19 @@ doScan = function(args)
             rescan = 0
 
             // Check to see if we need to rescan this lib/version.
-            mems = g.database[lib][version].indexes
+            mems = g.database[metaLib.lib_name][metaLib.version].indexes
+
+            if not mems or mems.len == 0 then rescan = 1
 
             for mem in mems
                 if rescan == 1 then break
-                values = g.database[lib][version][mem].indexes
+                values = g.database[metaLib.lib_name][metaLib.version][mem].indexes
+
+                if not values or values.len == 0 then rescan = 1
 
                 for value in values
                     if rescan == 1 then break
-                    if g.database[lib][version][mem][value] == "" then
+                    if g.database[metaLib.lib_name][metaLib.version][mem][value] == "" then
                         rescan = 1
                         break
                     end if

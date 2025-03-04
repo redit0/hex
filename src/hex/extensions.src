@@ -26,6 +26,12 @@ g.registerExtensions = function
         return g.r1("null")
     end function
 
+    string.getUser = function
+        if self == "root" then return g.r1(self)
+        if self == "guest" then return g.l3(self)
+        return g.b2(self)
+    end function
+
     // Retrieves the guest folder in a system from a file object.
     // @return {folder|null} - The guest folder or null if not found.
     map.getGuestFolder = function

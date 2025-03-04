@@ -191,13 +191,21 @@ doNmap = function(ip)
         devicePorts = router.device_ports(device)
 
         if typeof(devicePorts) == "string" or devicePorts == null then
-            // print g.error(devicePorts)
+            print g.error(devicePorts)
             devicePorts = []
         end if
 
         // There might be ports in used_ports that are forwarded to this device that aren't included in device_ports
         for port in usedPorts
-            if port.get_lan_ip == device and devicePorts.indexOf(port) == null then devicePorts.push(port)
+            if port.get_lan_ip == device then
+                addPort = 1
+                for devicePort in devicePorts
+                    if devicePort.get_lan_ip == device and devicePort.port_number == port.port_number then addPort = 0
+                end for
+                if addPort then
+                    devicePorts.push(port)
+                end if
+            end if
         end for
 
         if typeof(devicePorts) == "list" then

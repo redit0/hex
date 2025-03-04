@@ -24,6 +24,14 @@ lockdown = function(args = null)
         end for
     end function
 
+    del = function(files)
+        for file in files
+            print g.const.indent + g.o1("Deleting file: " + file.path)
+            result = file.delete
+            if result != "" then print g.error(result)
+        end for
+    end function
+
     if args != null and args.len > 0 then
         if args[0] == "help" or args[0] == "-h" then
             self.help
@@ -53,47 +61,17 @@ lockdown = function(args = null)
 
     root = file.getRootFolder
 
-    guest = g.func.find(root, "guest", "fw")
+    del(g.func.find(root, "guest", "fw"))
 
-    if guest.len > 0 then
-        print g.const.indent + g.o1("Deleting guest directory...")
-        result = guest[0].delete
-        if result != "" then print g.error(result)
-    end if
+    del(g.func.find(root, "passwd", "t"))
 
-    banks = g.func.find(root, "Bank.txt", "tw")
+    del(g.func.find(root, "Bank.txt", "tw"))
 
-    for bank in banks
-        print g.const.indent + g.o1("Deleting file: " + bank.path)
-        result = bank.delete
-        if result != "" then print g.error(result)
-    end for
+    del(g.func.find(root, "Mail.txt", "tw"))
 
-    mails = g.func.find(root, "Mail.txt", "tw")
+    del(g.func.find(root, ".Trash", "fw"))
 
-    for mail in mails
-        print g.const.indent + g.o1("Deleting file: " + mail.path)
-        result = mail.delete
-        if result != "" then print g.error(result)
-    end for
-
-    trashes = g.func.find(root, ".Trash", "fw")
-
-    for trash in trashes
-        print g.const.indent + g.o1("Deleting file: " + trash.path)
-        result = trash.delete
-        if result != "" then print g.error(result)
-    end for
-
-    km = g.func.find(root, "kernel_module.so", "bw")
-
-    for m in km
-        if m.path == "/lib/kernel_module.so" then
-            print g.const.indent + g.o1("Deleting file: " + m.path)
-            result = m.delete
-            if result != "" then print g.error(result)
-        end if
-    end for
+    del(g.func.find(root, "/lib/kernel_module.so", "bw"))
 
     root.chmod("u-rwx", 1)
     root.chmod("g-rwx", 1)

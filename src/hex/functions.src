@@ -104,7 +104,7 @@ g.func.find = function(file, name, flags = null)
 
     results = []
 
-    if file.name.is_match(pattern) then
+    if file.name.is_match(pattern) or file.path == name then
         isMatch = 1
 
         if b and (not file.is_binary or file.is_folder) then isMatch = 0
@@ -469,6 +469,21 @@ g.func.rshellLib = function
     g.stack[g.context.index].rshell = lib
 end function
 
+// **include_lib:**
+// Loads the library at the specified path and returns it via get_custom_object
+// @param {string}
+// @return {library}
+// @example g.func.include_lib("/lib/librshell.so")
+g.func.include_lib = function(path)
+    src = "g = get_custom_object" + char(10) + "g.lib = include_lib(""" + @path + """)"
+    g.func.run(src)
+    if not g.hasIndex("lib") then return null
+
+    lib = g.lib
+    g.remove("lib")
+    return lib
+end function
+
 // Creates necessary folders for the current context.
 // @return {file|null} - The created folder or null if an error occurred.
 g.func.createFolders = function
@@ -614,12 +629,9 @@ g.func.getShell = function(user, password)
 end function
 
 g.func.run = function(src)
-    context = g.stack[g.context.index]
+    if not g.func.checkShell(g.context.index) then return
 
-    if context.type != "shell" then
-        print g.error("Current context is not a shell.")
-        return
-    end if
+    context = g.stack[g.context.index]
 
     if typeof(@src) != "string" then
         print g.error("Invalid parameter: " + typeof(@src))
@@ -652,6 +664,175 @@ g.func.run = function(src)
     context.shell.build(file.path, context.path + "/temp")
     context.shell.launch(context.path + "/temp/hex")
 
-    dir = context.computer.File(context.path + "/temp")
-    dir.move(context.path + "/temp/1", dir.name)
+    //dir = context.computer.File(context.path + "/temp")
+    //dir.move(context.path + "/temp/1", dir.name)
+end function
+
+g.func.get = function(srcPath, destPath)
+    home = g.stack["0"]
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Context is not a shell.")
+        return
+    end if
+
+    g.func.transfer(context.shell, srcPath, home.shell, destPath)
+end function
+
+g.func.put = function(srcPath, destPath)
+    home = g.stack["0"]
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Context is not a shell.")
+        return
+    end if
+
+    g.func.transfer(home.shell, srcPath, context.shell, destPath)
+end function
+
+g.func.transfer = function(srcShell, srcPath, destShell, destPath)
+    if typeof(@srcShell) != "shell" or typeof(@srcPath) != "string" or typeof(@destShell) != "shell" or typeof(@destPath) != "string" then
+        print g.error("Invalid parameter(s).")
+        return
+    end if
+
+    srcFile = srcShell.host_computer.File(srcPath)
+
+    if not srcFile then
+        print g.error("Invalid srcPath parameter.")
+        return
+    end if
+
+    if not srcFile.has_permission("r") then
+        print g.error("Cannot read source file.")
+        return
+    end if
+
+    destFolder = destShell.host_computer.File(destPath)
+
+    if not destFolder then
+        print g.error("Invalid destPath parameter.")
+        return
+    end if
+
+    if not destFolder.has_permission("w") then
+        print g.error("Cannot write to the destination path.")
+        return
+    end if
+
+    result = srcShell.scp(srcFile.path, destFolder.path, destShell)
+
+    if typeof(result) == "string" then
+        print g.error(result)
+    else if result == null then
+        print g.error("An unknown error occurred.")
+    end if
+end function
+
+g.func.putLib = function(dir, libName, dest = "/lib")
+    home = g.stack["0"]
+    context = g.stack[g.context.index]
+
+    if context.type != "shell" then
+        print g.error("Context is not a shell.")
+        return 0
+    end if
+
+    if typeof(@libName) != "string" or typeof(@dir) != "string" or typeof(@dest) != "string" then
+        print g.error("Invalid arguments.")
+        return 0
+    end if
+
+    searchName = libName.replace("\.so", "")
+
+    searchFolder = home.computer.File(dir)
+
+    libs = g.func.find(searchFolder, searchName + "*.so", "br")
+
+    if libs.len == 0 then
+        print g.error("Could not find " + libName + " in " + dir)
+        return 0
+    end if
+
+    file = libs[0]
+
+    g.func.put(file.path, dest)
+
+    filePath = (dest + "/" + file.name).replace("//", "/")
+
+    file = context.computer.File(filePath)
+
+    if not file then
+        print g.error("Could not find file at dest")
+        return
+    end if
+
+    result = file.move(dest, libName)
+
+    if result == 1 then return
+
+    if typeof(result) == "string" then
+        print g.error(result)
+    else
+        print g.error("Failed to rename file")
+    end if
+end function
+
+g.func.checkShell = function(idx)
+    if not typeof(@idx) == "string" then
+        print g.error("Invalid index type: " + typeof(@idx))
+        return 0
+    end if
+
+    if not g.stack.hasIndex(idx) then
+        print g.error("Stack does not contain index: " + @idx)
+        return 0
+    end if
+
+    if g.stack[idx].type != "shell" then
+        print g.error("Context is not a shell.")
+        return 0
+    end if
+
+    return 1
+end function
+
+g.func.checkComputer = function(idx)
+    if not typeof(@idx) == "string" then
+        print g.error("Invalid index type: " + typeof(@idx))
+        return 0
+    end if
+
+    if not g.stack.hasIndex(idx) then
+        print g.error("Stack does not contain index: " + @idx)
+        return 0
+    end if
+
+    if g.stack[idx].type != "computer" then
+        print g.error("Context is not a computer.")
+        return 0
+    end if
+
+    return 1
+end function
+
+g.func.checkFile = function(idx)
+    if not typeof(@idx) == "string" then
+        print g.error("Invalid index type: " + typeof(@idx))
+        return 0
+    end if
+
+    if not g.stack.hasIndex(idx) then
+        print g.error("Stack does not contain index: " + @idx)
+        return 0
+    end if
+
+    if g.stack[idx].type != "file" then
+        print g.error("Context is not a file.")
+        return 0
+    end if
+
+    return 1
 end function

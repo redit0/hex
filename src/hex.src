@@ -49,15 +49,9 @@ g.func.init
 g.func.updateApt
 output = g.func.updateLibs
 g.func.loadLibs
-rs = g.func.initRshell
 
 print(g.func.getBanner, 1)
 print(output)
-
-if rs then
-	print(g.const.indent + "Configuring rshell server...")
-	print(rs)
-end if
 
 g.func.initMail
 

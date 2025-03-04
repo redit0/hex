@@ -19,5 +19,18 @@
         "emailAddress": "intrepid@wuviwilem.info",
         "emailPassword": "galaxy"
     },
-    "greybel.transpiler.ingameDirectory": "/bin/"
+    "greybel.transpiler.ingameDirectory": "/bin/",
+    "auto-version-increment.version.file": [
+        {
+            "path": "src\\hex\\constants.src",
+            "prefix": "version = \"",
+            "sufix": "\"",
+            "primary": true,
+            "useWorkspacePath": true
+        }
+    ],
+    "auto-version-increment.info.notificationBar": true,
+    "auto-version-increment.update.onDebug": "Build Number",
+    "auto-version-increment.update.onSave": "Build Number",
+    "auto-version-increment.update.versionDigit": "Build Number"
 }
