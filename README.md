@@ -114,7 +114,7 @@ HEX is designed to automate common tasks in Grey Hack gameplay, including:
 **Developer**: Loading Home (Victor Cano / Kurouzu)  
 **Platform**: Steam (Windows, macOS, Linux)  
 **Status**: Early Access  
-**Official Website**: [Grey Hack on Steam](https://store.steampowered.com/app/605230/Grey_Hack/)
+**Official Website**: [Grey Hack on Steam](https://store.steampowered.com/app/605230/Grey_Hack/)  
 **Official Discord**: [Grey Hack Official Discord](https://discord.com/invite/greyhack)
 
 ---
