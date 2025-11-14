@@ -1,0 +1,16 @@
+Result = {
+    "classID": "Result",
+    "success": null,
+    "output": null,
+    "data": null
+}
+
+Result.New = function(success, data, output = "")
+    result = new self
+
+    result.success = success
+    result.output = output
+    result.data = data
+
+    return result
+end function

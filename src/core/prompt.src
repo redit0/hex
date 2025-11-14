@@ -1,0 +1,83 @@
+g.func.getPrompt = function
+	context = g.stack[g.context.index]
+	user = context.user
+	type = context.type
+
+	if type == "shell" or type == "computer" then
+		hostName = context.computer.get_name
+	else
+		hostName = "???"
+	end if
+
+	prompt = "<nobr><font=""SourceCodePro-Regular SDF"">"
+
+	prompt = prompt + "<mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+	prompt = prompt + "<mark=" + g.colors.s3 + "><#000> P:" + context.public + " </color></mark>"
+	prompt = prompt + "<mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+
+	prompt = prompt + "<space=1em><mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+	prompt = prompt + "<mark=" + g.colors.s3 + "><#000> L:" + context.local + " </color></mark>"
+	prompt = prompt + "<mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+
+	prompt = prompt + "<space=1em><mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+
+	if context.source == "home" then
+		prompt = prompt + "<mark=" + g.colors.s3 + "><#000> home </color></mark>"
+	else
+		prompt = prompt + "<mark=" + g.colors.s3 + "><#000> " + context.type + " </color></mark>"
+	end if
+	prompt = prompt + "<mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+
+	prompt = prompt + "<space=1em><mspace=3><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+	prompt = prompt + "<mark=" + g.colors.s3 + "><#000>"
+	
+	if context.metax.lib then
+		prompt = prompt + " M:" + context.metax.version
+	else
+		prompt = prompt + " M:N/A"
+	end if
+
+	if context.crypto.lib then
+		prompt = prompt + " C:" + context.crypto.version
+	else
+		prompt = prompt + " C:N/A"
+	end if
+
+	if context.apt.lib then
+		prompt = prompt + " A:" + context.apt.version
+	else
+		prompt = prompt + " A:N/A"
+	end if
+
+	if context.rshell.lib then
+		prompt = prompt + " R:" + context.rshell.version
+	else
+		prompt = prompt + " R:N/A"
+	end if
+
+	prompt = prompt + " </color></mark>"
+	prompt = prompt + "<mspace=1><size=85%><sprite=2 color=" + g.colors.s3 + "></size></mspace>"
+
+	prompt = prompt + char(10)*2
+
+	prompt = prompt + "<nobr><font=""SourceCodePro-Regular SDF""><b>"
+
+	if user == "root" then
+		prompt = prompt + "<mark=" + g.colors.b6 + "><#fff> " + user + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.b6 + "></size></mspace>"
+		prompt = prompt + "<mark=" + g.colors.b12 + "><#fff> " + hostName + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.b12 + "></size></mspace>"
+	else if user == "guest" then
+		prompt = prompt + "<mark=" + g.colors.r4 + "><#fff> " + user + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.r4 + "></size></mspace>"
+		prompt = prompt + "<mark=" + g.colors.r7 + "><#fff> " + hostName + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.r7 + "></size></mspace>"
+	else if user == "unknown" then
+		prompt = prompt + "<mark=" + g.colors.d5 + "><#fff> " + user + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.d5 + "></size></mspace>"
+		prompt = prompt + "<mark=" + g.colors.d9 + "><#fff> " + hostName + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.d9 + "></size></mspace>"
+	else
+		prompt = prompt + "<mark=" + g.colors.g4 + "><#fff> " + user + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.g4 + "></size></mspace>"
+		prompt = prompt + "<mark=" + g.colors.g8 + "><#fff> " + hostName + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.g8 + "></size></mspace>"
+	end if
+
+	prompt = prompt + "<mark=" + g.colors.l1 + "><#000> " + context.currentPath + " </color></mark><mspace=1><size=85%><sprite=2 color=" + g.colors.l1 + "></size></mspace>  "
+	prompt = prompt + "</b></font></nobr>"
+
+	return g.const.nl + prompt
+end function

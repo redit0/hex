@@ -1,0 +1,191 @@
+stackHelp = function(self)
+    text = g.const.nl + g.l3("Usage:","u") + g.const.nl
+    text = text + g.g2(self.name) + g.l2(" Prints a list of all contexts currently stored in the stack") + g.const.nl
+    text = text + g.g2(self.name) + g.b3(" [-c/clear]") + g.l2(" Clears all items from the stack except for the home computer context (whichever computer originally ran hex)") + g.const.nl
+    text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
+
+    return text
+end function
+
+doStack = function(args = null)
+    if args != null and args.len > 0 then
+        if args[0] == "help" or args[0] == "-h" then
+            return Result.New(1, null, self.help)
+        else if args[0] == "clear" or args[0] == "-c" then
+            g.stack.clear
+            g.command = "stack"
+
+            return Result.New(1, null, "Cleared stack.")
+        else if args[0] isa Context then
+            key = g.stack.add(args[0])
+            g.command = "stack"
+            
+            return Result.New(1, key, "Added context at index: " + key)
+        end if
+
+        return Result.New(0, null, self.help)
+    end if
+
+    keys = g.stack.indexes
+
+    items = {}
+
+    for i in keys
+        if not i.to_int isa number then continue
+
+        context = g.stack[i]
+        context.key = i
+
+        if not items.hasIndex(context.public) then items[context.public] = []
+
+        items[context.public].push(context)
+    end for
+
+    indices = items.indexes
+    indices.sort
+
+    for i in indices
+        items[i].sort("local")
+    end for
+
+    output = g.const.nl + "Legend:" + g.const.tab*2 + g.s3("Current Context") + g.const.tab*2 + g.g10("Selected Proxy") + g.const.tab*2 + g.y1("R-Shell Server") + g.const.nl
+
+    output = output + g.const.nl
+    
+    output = output + g.s4("<size=115%><voffset=0.5em>Index<pos=90>Public IP<pos=260>Local IP<pos=420>Type<pos=530>Source<pos=660>User</voffset></size>") + g.const.nl
+
+    context = g.stack[g.context.index]
+
+    for i in indices
+        for item in items[i]
+            line = item.key + "<pos=90>" + item.public + "<pos=260>" + item.local + "<pos=420>" + item.type + "<pos=530>" + item.source + "<pos=660>" + item.user
+
+            if item.key == g.context.index then
+                output = output + g.s3(line) + g.const.nl
+            else if g.hasIndex("proxy") and g.proxy == item.key then
+                output = output + g.g10(line) + g.const.nl
+            else if g.hasIndex("rs server") and g.proxy == item.key then
+                output = output + g.y1(line) + g.const.nl
+            else
+                output = output + g.l1(line) + g.const.nl
+            end if
+        end for
+    end for
+
+    return Result.New(1, null, output)
+end function
+
+g.stack.add = function(item, force = 0)
+    updateItem = function(i, item)
+        g.stack[i][item.type] = item[item.type]
+        g.stack[i].user = item.user
+        g.stack[i].source = item.source
+
+        if item.type == "shell" then
+            g.stack[i].computer = item.computer
+            g.stack[i].file = item.file
+        else if item.type == "computer" then
+            g.stack[i].file = item.file
+        end if
+    end function
+
+    // Only add the lower-tier items if we already have one, and if the one we already have is of a lower access level than this new one would give us.
+    updateExtras = function
+        if item.source.indexOf("proxy") == null and item.source != "rs server" then
+            if item.type == "shell" then
+                add = 0
+
+                for i in g.stack.indexes
+                    if typeof(i.to_int) != "number" then continue
+
+                    if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == "computer" then
+                        if g.stack[i].user == "guest" or item.user == "root" then
+                            add = 1
+                        end if
+                    end if
+                end for
+
+                if add then g.stack.add(Context.New(item.source, item.computer))
+            else if item.type == "computer" then
+                add = 0
+
+                for i in g.stack.indexes
+                    if typeof(i.to_int) != "number" then continue
+
+                    if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == "file" then
+                        if g.stack[i].user == "guest" or item.user == "root" then
+                            add = 1
+                        end if
+                    end if
+                end for
+
+                if add then
+                    temp = Context.New(item.source, item.file)  //item.file.createContext(item.source)
+                    temp.local = item.local
+                    temp.public = item.public
+
+                    g.stack.add(temp)
+                end if
+            end if
+        end if
+    end function
+
+    keys = g.stack.indexes
+
+    max = keys.max
+
+    if max < 0 then
+        key = str(0)
+    else
+        key = str(max + 1)
+    end if
+
+    if not force then
+        for i in keys
+            if not typeof(i.to_int) == "number" then continue
+
+            if g.stack[i].public == item.public and g.stack[i].local == item.local and g.stack[i].type == item.type then
+                if g.stack[i].user == "guest" or item.getUser == "root" then
+                    if g.stack[i].user != "root" then
+                        updateItem(i, item)
+                    end if
+                end if
+
+                updateExtras
+
+                return i
+            end if
+        end for
+    end if
+
+    g.stack[key] = item
+
+    updateExtras
+
+    return key
+end function
+
+g.stack.clear = function
+    keys = g.stack.indexes
+
+    for i in keys
+        if i.to_int isa number and i.to_int > 0 then
+            if not g.stack[i].source.is_match("proxy") and g.stack[i].source != "rs server" then
+                if g.context.index == i then g.context.index = "0"
+                g.stack.remove(i)
+            end if
+        end if
+    end for
+end function
+
+// Fill out the parts of this template, and then place it in the a folder called 'tools' in the same directory as the main hex binary file.
+// You can leave it as src code (name it with a .src file extension), otherwise hex will attempt to load it as a binary file that has been built with the
+// 'allow import' flag set.
+
+g.commands.stack = {
+    "name": "stack",
+    "shortDescription": "Prints a list of all contexts currently in the stack.",
+    "exec": @doStack,
+    "help": @stackHelp,
+    "data": {}
+}

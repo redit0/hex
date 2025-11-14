@@ -1,0 +1,69 @@
+Context = {
+    "classID": "Context",
+    "source": null,
+    "type": null,
+    "user": null,
+    "shell": null,
+    "computer": null,
+    "file": null,
+    "path": "/",
+    "currentPath": "/",
+    "metax": { "lib": null, "version": null, "path": null },
+    "crypto": { "lib": null, "version": null, "path": null },
+    "apt": { "lib": null, "version": null, "path": null },
+    "rshell": { "lib": null, "version": null, "path": null },
+    "public": null,
+    "local": null
+}
+
+Context.New = function(source, obj)
+    result = new self
+
+    result.source = source
+    result.type = typeof(obj)
+
+    if result.type == "shell" then
+        result.shell = obj
+        result.computer = obj.host_computer
+        result.file = obj.host_computer.File(result.path)
+        result.public = obj.host_computer.public_ip
+        result.local = obj.host_computer.local_ip
+    else if result.type == "computer" then
+        result.computer = obj
+        result.file = obj.File(result.path)
+        result.public = obj.public_ip
+        result.local = obj.local_ip
+    else if result.type == "file" then
+        result.file = obj
+    else
+        print(g.error("Invalid object type: " + result.type))
+        print(obj)
+        return null
+    end if
+
+    return result
+end function
+
+Context.SetUser = function
+    self.user = g.func.check_user(self.computer, 0)
+end function
+
+Context.GetUser = function(color = 1)
+    if self.user == null then
+        self.SetUser
+    end if
+
+    if color then
+        if self.user == "root" then
+            return g.r1(self.user)
+        else if self.user == "guest" then
+            return g.o1(self.user)
+        else if self.user == "unknown"then
+            return g.l2(self.user)
+        else
+            return g.g2(self.user)
+        end if
+    else
+        return self.user
+    end if
+end function

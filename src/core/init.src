@@ -1,0 +1,25 @@
+g.colors = {}
+g.commands = {}
+g.const = {}
+g.func = {}
+g.stack = {}
+
+g.command = ""
+
+import_code("types/context.src")
+import_code("types/result.src")
+import_code("types/exploit.src")
+
+import_code("json.src")
+import_code("colors.src")
+import_code("constants.src")
+import_code("functions.src")
+import_code("extensions.src")
+import_code("banner.src")
+import_code("prompt.src")
+import_code("startup.src")
+import_code("../tools/stack.src")
+
+g.registerExtensions
+
+g.func.startup

@@ -1,0 +1,75 @@
+g.colors.b1 = "#0B1426"
+g.colors.b2 = "#162A52"
+g.colors.b3 = "#1D3461"
+g.colors.b4 = "#244270"
+g.colors.b5 = "#2B4F7F"
+g.colors.b6 = "#345C8E"
+g.colors.b7 = "#3465a4"
+g.colors.b8 = "#3D689D"
+g.colors.b9 = "#4674AC"
+g.colors.b10 = "#5180BB"
+g.colors.b11 = "#5C8CCA"
+g.colors.b12 = "#729FCF"
+g.colors.b13 = "#51cce0"
+g.colors.s1 = "#3c4a8b"
+g.colors.s2 = "#5c7bc1"
+g.colors.s3 = "#85b8ff"
+g.colors.s4 = "#c2dfff"
+g.colors.r1 = "#2B0000"
+g.colors.r2 = "#440000"
+g.colors.r3 = "#5D0000"
+g.colors.r4 = "#760000"
+g.colors.r5 = "#8F0000"
+g.colors.r6 = "#A80000"
+g.colors.r7 = "#C10A00"
+g.colors.r8 = "#DA1500"
+g.colors.r9 = "#F32000"
+g.colors.r10 = "#FF4A2B"
+g.colors.o1 = "#ffa500"
+g.colors.g1 = "#0F1F0F"
+g.colors.g2 = "#1A331A"
+g.colors.g3 = "#234723"
+g.colors.g4 = "#2C5B2C"
+g.colors.g5 = "#356F35"
+g.colors.g6 = "#3E833E"
+g.colors.g7 = "#479747"
+g.colors.g8 = "#50AB50"
+g.colors.g9 = "#59BF59"
+g.colors.g10 = "#62D362"
+g.colors.l1 = "#eeeeee"
+g.colors.l2 = "#b3b3b3"
+g.colors.l3 = "#dcdcaa"
+g.colors.d1 = "#0F0F0F"
+g.colors.d2 = "#1E1E1E"
+g.colors.d3 = "#2D2D2D"
+g.colors.d4 = "#3C3C3C"
+g.colors.d5 = "#4B4B4B"
+g.colors.d6 = "#5A5A5A"
+g.colors.d7 = "#696969"
+g.colors.d8 = "#787878"
+g.colors.d9 = "#878787"
+g.colors.d10 = "#969696"
+g.colors.y1 = "#dbd700"
+
+g.func.format = function(str, args = null)
+    if args and args.len > 0 then
+        for x in range(args.len-1)
+            str = "<" + args[x] + ">" + str + "</" + args[x] + ">"
+        end for
+    end if
+    return str
+end function
+
+initColor = function(idx)
+    g[idx] = function(str, args = null)
+        return g.func.format("<color=" + g.colors[idx] + ">" + str + "</color>", args)
+    end function
+end function
+
+for idx in g.colors.indexes
+    initColor(idx)
+end for
+
+g.error = function(str)
+    return g.r7("[Error] " + str)
+end function

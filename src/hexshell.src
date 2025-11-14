@@ -1,0 +1,49 @@
+g = get_custom_object
+
+#include "core/init.src"
+	
+while true
+	if g.command == "" then
+		input = user_input(g.func.getPrompt, 0, 0, 1)
+
+		if input == "" then
+			continue
+		end if
+	else
+		input = g.command
+		g.command = ""
+	end if
+
+	result = null
+
+	commands = input.split("\|")
+
+	for command in commands
+		command = command.trim
+
+		key = command.split(" ")[0]
+		args = command.split(" ")[1:]
+
+		if result != null and result isa Result then
+			args.push(result.data)
+			result = null
+		end if
+
+		if g.commands.hasIndex(key) then
+			result = g.commands[key].exec(args)
+		else
+			if not g.func.run_binary(key, args) then
+				print(g.error("Command not recognized: [" + key + "]"))
+				break
+			end if
+		end if
+
+		if result != null and result isa Result then
+			if result.output != null and typeof(result.output) == "string" then
+				print result.output
+			end if
+
+			if not result.success then break
+		end if
+	end for
+end while

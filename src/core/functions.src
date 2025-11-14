@@ -1,0 +1,306 @@
+// **Find:**
+// Finds files (and folders) matching a pattern with optional flags.  Use * as a wildcard character.
+// @description **Flags:**
+// @description  b - Binary Files (excluding folders)
+// @description  f - Folders Only
+// @description  t - Text Files
+// @description  r - Can Read
+// @description  w - Can Write
+// @description  x - Can Execute
+// @description  l - Include Symlinks
+// @example g.func.find(file, "*.so", "br") // Finds all readable libraries (binary files ending in ".so" with the permission "r")
+// @example g.func.find(file, "passwd", "t") // Finds all text files named "passwd"
+// @example g.func.find(file, "guest", "f") // Finds all folders named "guest"
+// @param {file} file - The starting file or folder.
+// @param {string} name - The pattern to match file names against.
+// @param {string|null} flags - Optional flags to filter results.
+// @return {list<file>} - The list of matching files.
+g.func.find = function(file, name, flags = null)
+    pattern = name.replace("\.", "\.").replace("\*", ".*")
+    b = flags != null and flags.indexOf("b") != null // Binary Files
+    f = flags != null and flags.indexOf("f") != null // Folders
+    t = flags != null and flags.indexOf("t") != null // Text Files
+    r = flags != null and flags.indexOf("r") != null // Can Read
+    w = flags != null and flags.indexOf("w") != null // Can Write
+    x = flags != null and flags.indexOf("x") != null // Can Execute
+    l = flags != null and flags.indexOf("l") != null // Include Symlinks
+
+    results = []
+
+    if file.name.is_match("^" + pattern, "i") or file.path == name then
+        isMatch = 1
+
+        if b and (not file.is_binary or file.is_folder) then isMatch = 0
+        if f and not file.is_folder then isMatch = 0
+        if t and file.is_binary then isMatch = 0
+        if r and not file.has_permission("r") then isMatch = 0
+        if w and not file.has_permission("w") then isMatch = 0
+        if x and not file.has_permission("x") then isMatch = 0
+        if not l and file.is_symlink then isMatch = 0
+
+        if isMatch then results.push(file)
+    end if
+    
+    if file.is_folder then
+        files = file.get_files + file.get_folders
+
+        for temp in files
+            results = results + g.func.find(temp, name, flags)
+        end for
+    end if
+
+    return results
+end function
+
+// **GenerateUUID:**
+// Generates a random UUID v4 string.
+// @return {string} - The generated UUID.
+// @example g.func.generateUUID() // Generates a new UUID string
+//
+g.func.generateUUID = function()
+    // Generate random hex characters
+    randomHex = function(length)
+        chars = "0123456789abcdef"
+        result = ""
+        for i in range(0, length - 1)
+            result = result + chars[floor(rnd * 16)]
+        end for
+        return result
+    end function
+    
+    // Generate UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+    uuid = randomHex(8) + "-" + randomHex(4) + "-4" + randomHex(3) + "-"
+    
+    // For the y position, first digit must be 8, 9, a, or b
+    yChars = "89ab"
+    uuid = uuid + yChars[floor(rnd * 4)] + randomHex(3) + "-" + randomHex(12)
+    
+    return uuid
+end function
+
+// **File Exists:**
+// Checks if a file exists at the given path on the specified computer.
+// @param {computer} computer - The computer object.
+// @param {string} path - The file path to check.
+// @return {bool} - True if the file exists, false otherwise.
+// @example g.func.file_exists(computer, "/etc/passwd") // Checks if /etc/passwd exists
+//
+g.func.file_exists = function(computer, path)
+    file = computer.File(path)
+    return file != null
+end function
+
+// **Clear Custom Object:**
+// Removes all keys from the custom object except for "__isa" and "classID".
+// @return {void}
+// @example g.func.clear_custom_object() // Clears custom object properties
+//
+g.func.clear_custom_object = function
+    for idx in get_custom_object.indexes
+        if idx == "__isa" or idx == "classID" then continue
+        get_custom_object.remove(idx)
+    end for
+end function
+
+// **Check User:**
+// Determines the user/owner of a file, computer, or shell object, optionally colorizing the result.
+// @param {object} obj - The file, computer, or shell object.
+// @param {number} color - Whether to colorize the result (default: 1).
+// @return {string} - The user/owner name.
+// @example g.func.check_user(file) // Gets the owner of a file
+//
+g.func.check_user = function(obj, color = 1)
+    type = typeof(obj)
+
+    if type != "shell" and type != "computer" and type != "file" then return "unknown"
+
+    if type == "shell" then
+        file = obj.host_computer.File("/")
+        computer = obj.host_computer
+    else if type == "computer" then
+        file = obj.File("/")
+        computer = obj
+    else if type == "file" then
+        return g.func.check_user_silent(obj, color)
+    end if
+
+    if color then
+        user = g.l2("unknown")
+    else
+        user = "unknown"
+    end if
+
+    writable = g.func.find(file, "*", "fw").push(null)[0]
+
+    if writable == null then
+        return g.func.check_user_silent(file, color)
+    else
+        filename = g.func.generateUUID
+
+        while g.func.file_exists(computer, writable.path.trimEnd("/") + "/" + filename)
+            filename = g.func.generateUUID
+        end while
+
+        computer.touch(writable.path.trimEnd("/") + "/", filename)
+
+        tempFile = computer.File(writable.path.trimEnd("/") + "/" + filename)
+
+        tempUser = tempFile.owner
+
+        result = g.func.silent_delete(computer, tempFile)
+
+        if not result.success then
+            print result.output
+        end if
+
+        if color then
+            if tempUser == "root" then
+                user = g.r1(tempUser)
+            else if tempUser == "guest" then
+                user = g.o1(tempUser)
+            else
+                user = g.g2(tempUser)
+            end if
+        else
+            user = tempUser
+        end if
+    end if
+
+    return user
+end function
+
+// **Check User Silent:**
+// Attempts to determine the active user by checking write permissions on root and user folders in /home.
+// Returns "root" if root is writable, otherwise returns the name of a writable user folder, or "guest (?)" if none found. Optionally colorizes the result.
+// @param {file} file - The file object.
+// @param {number} color - Whether to colorize the result (default: 1).
+// @return {string} - The detected user/owner name ("root", username, or "guest (?)").
+// @example g.func.check_user_silent(file) // Returns the likely owner of the file
+//
+g.func.check_user_silent = function(file, color = 1)
+    while file.path != "/"
+        file = file.parent
+    end while
+
+    if file.has_permission("w") then
+        if color then return g.r1("root") else return "root"
+    end if
+
+    for folder in file.get_folders
+        if folder.name == "home" then
+            for userDir in folder.get_folders
+                if userDir.has_permission("w") and userDir.name != "guest" then
+                    if color then return g.g2(userDir.name) else return userDir.name
+                end if
+            end for
+        end if
+    end for
+
+    if color then return g.o1("guest (?)") else return "guest (?)"
+end function
+
+// **Silent Delete:**
+// Attempts to delete a file or folder by moving it to a temporary location and removing it, returning a Result object.
+// @param {computer} computer - The computer object.
+// @param {file} file - The file or folder to delete.
+// @return {Result} - The result of the delete operation.
+// @example g.func.silent_delete(computer, file) // Deletes a file or folder silently
+//
+g.func.silent_delete = function(computer, file)
+    writable = g.func.find(computer.File("/"), "*", "fw").push(null)[0]
+
+    if writable == null then
+        return Result.New(0, null, g.error("Could not find any writable folder."))
+    end if
+
+    filename = g.func.generateUUID
+
+    while g.func.file_exists(computer, writable.path.trimEnd("/") + "/" + filename)
+        filename = g.func.generateUUID
+    end while
+
+    result = computer.create_folder(writable.path, filename)
+
+    if typeof(result) == "string" then
+        return Result.New(0, null, g.error("Error creating folder: " + result))
+    end if
+
+    folder = computer.File(writable.path.trimEnd("/") + "/" + filename)
+
+    if folder == null then
+        return Result.New(0, null, g.error("Could not create temporary folder."))
+    end if
+
+    result = computer.create_folder(writable.path.trimEnd("/") + "/" + filename, "temp")
+
+    if typeof(result) == "string" then
+        return Result.New(0, null, g.error("Error creating folder: " + result))
+    else if not computer.File(writable.path.trimEnd("/") + "/" + filename + "/temp") then
+        return Result.New(0, null, g.error("Could not create 'temp' folder."))
+    end if
+
+    result = file.move(writable.path.trimEnd("/") + "/" + filename, file.name)
+
+    if typeof(result) == "string" then
+        return Result.New(0, null, g.error("Error moving file: " + result))
+    end if
+
+    result = folder.move(writable.path.trimEnd("/") + "/" + filename + "/temp", folder.name)
+
+    if typeof(result) == "string" then
+        return Result.New(0, null, g.error("Error moving folder: " + result))
+    end if
+
+    return Result.New(1, null, "File deleted successfully.")
+end function
+
+// **Run Binary:**
+// Searches for a binary file matching the given key and launches it with the provided arguments from the current shell context.
+// If multiple binaries are found, prompts the user to select one. Returns 1 on success, 0 on failure or invalid selection.
+// @param {string} key - The name or pattern of the binary to search for.
+// @param {list<string>} args - Arguments to pass to the binary.
+// @return {number} - 1 if the binary was launched successfully, 0 otherwise.
+// @example g.func.run_binary("ls", ["-l", "/home"]) // Runs the 'ls' binary with arguments
+//
+g.func.run_binary = function(key, args)
+    idx = g.context.index
+    if g.stack[idx].type == "shell" then
+        file = g.stack[idx].computer.File("/")
+
+        binaries = g.func.find(file, key, "b")
+        binary = null
+
+        if binaries.len == 0 then
+            return 0
+        else
+            if binaries.len > 1 then
+                num = 1
+                options = ""
+                for b in binaries
+                    options = options +  "[" + num + "]" + g.const.tab*2 + b.path + g.const.nl
+                    num = num + 1
+                end for
+
+                selection = user_input("Multiple binaries found:" + g.const.nl*2 + options + g.const.nl + "Select a binary to launch: ", 0, 0, 0)
+
+                if typeof(selection.to_int) == "number" and selection.to_int > 0 and selection.to_int < num then
+                    binary = binaries[selection.to_int - 1]
+                else
+                    print(g.error("Invalid selection."))
+
+                    return 0
+                end if
+            else if binaries.len == 1 then
+                    binary = binaries[0]
+            end if
+
+            if binary != null then
+                g.stack[idx].shell.launch(binary.path, args.join(" "))
+
+                return 1
+            end if
+
+            return 0
+        end if
+    end if
+end function

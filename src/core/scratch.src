@@ -1,0 +1,70 @@
+    check_user = function(obj)
+        type = typeof(obj)
+
+        if type != "shell" and type != "computer" and type != "file" then return "unknown"
+
+        if type == "shell" then
+            file = obj.host_computer.File("/")
+            computer = obj.host_computer
+        else if type == "computer" then
+            file = obj.File("/")
+            computer = obj
+        else if type == "file" then
+            // We can't use this method with a file object.
+            // Fall back to less accurate method.
+            check_user_silent(obj)
+        end if
+
+        user = "unknown"
+
+        // This needs to be a directory that your object has "w" permissions for.
+        writable = computer.File("/home/guest")
+
+        if writable == null or not writable.has_permission("w") then
+            // Could not write to location
+            // Fall back to less accurate method
+            // We pass 'file' instead of 'obj' here because file is already "/"... just saves some processing cycles.
+            return check_user_silent(file)
+        else
+            filename = "temp"
+
+            // Make sure the file we're going to create doesn't already exist.  Delete it if it does.
+            tempFile = computer.File(writable.path + "/" + filename)
+
+            // This will leave a log!!
+            if tempFile then tempFile.delete
+
+            computer.touch(writable.path + "/", filename)
+
+            tempFile = computer.File(writable.path + "/" + filename)
+
+            user = tempFile.owner
+
+            // This will leave a log!!
+            tempFile.delete
+        end if
+
+        return user
+    end function
+
+    // This method is less accurate, especially against chmoded systems, but it leaves no logs
+    // and can be done with just a file object, so it's good for a fallback method
+    check_user_silent = function(file)
+        while file.path != "/"
+            file = file.parent
+        end while
+
+        if file.has_permission("w") then return "root"
+
+        for folder in file.get_folders
+            if folder.name == "home" then
+                for userDir in folder.get_folders
+                    if userDir.has_permission("w") and userDir.name != "guest" then return userDir.name
+                end for
+            end if
+        end for
+
+        // Return "guest" with a question mark because we don't actually *know* the user is guest.
+        // We just assume, because we haven't found a writable home folder.
+        return "guest (?)"
+    end function

@@ -1,0 +1,30 @@
+g.func.startup = function
+    if active_user == "root" then
+        shell = get_shell
+    else
+        pass = user_input("Enter password for root: ", 1, 0, 0)
+
+        shell = get_shell("root", @pass)
+        if not shell then
+            msg = "."
+            while true
+                print msg, 1
+                wait 0.5
+                msg = msg + " ."
+            end while
+        end if
+    end if
+    context = Context.New("home", shell)
+    context.path = current_path
+    context.currentPath = current_path
+    context.SetUser()
+
+    key = g.stack.add(context)
+
+    g.context = {
+        "index": key,
+        "lastIndex": key
+    }
+
+    print g.func.getBanner(), 1
+end function

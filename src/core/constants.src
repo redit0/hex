@@ -1,0 +1,6 @@
+g.const.version = "0.0.471"
+g.const.vhex = "v" + g.const.version
+g.const.indent = "    "
+g.const.nl = char(10)
+g.const.tab = char(9)
+g.const.arrow = "-->"
