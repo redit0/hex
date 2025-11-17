@@ -1,24 +1,24 @@
 g.func.getBanner = function
     banner = ""
-    banner = banner + g.s3("    __    __    __    __    __    __    __    __    __    __    __    __    ") + g.const.nl
-    banner = banner + g.s3(" __/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__ ") + g.const.nl
-    banner = banner + g.s3("/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/                                                              \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \ " + g.o1("<b> /\\\      /\\\    /\\\\\\\\\   /\\\       /\\\      </b>") + "  /  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/ " + g.o1("<b> \/\\\     \/\\\   \/\\\/////   \///\\\   /\\\/      </b>") + "  \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \ " + g.o1("<b>  \/\\\     \/\\\   \/\\\          \///\\\\\\/       </b>") + "  /  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/ " + g.o1("<b>   \/\\\\\\\\\\\\\   \/\\\\\\\        \//\\\\        </b>") + "  \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \ " + g.o1("<b>    \/\\\///////\\\   \/\\\///          /\\\\\\      </b>") + "  /  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/ " + g.o1("<b>     \/\\\     \/\\\   \/\\\           /\\\////\\\   </b>") + "  \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \ " + g.o1("<b>      \/\\\     \/\\\   \/\\\\\\\\\   /\\\/   \///\\\</b>") + "  /  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/ " + g.o1("<b>       \///      \///    \/////////   \///       \///</b>") + "  \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \                                                              /  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/     <b>" + g.l1(g.const.vhex) + "<pos=544>" + g.l1("by") + " " + g.b13("redit0</b>") + "    \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \__    __    __    __    __    __    __    __    __    __    __/  \__/") + g.const.nl
-    banner = banner + g.s3("/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \") + g.const.nl
-    banner = banner + g.s3("\__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/") + g.const.nl
-    banner = banner + g.s3("   \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/   ")
+    banner = banner + g.s3("<b>    __    __    __    __    __    __    __    __    __    __    __    __    </b>") + g.const.nl
+    banner = banner + g.s3("<b> __/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__ </b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/                                                              \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \    " + g.o2(" /\\\      /\\\    /\\\\\\\\\   /\\\       /\\\         ") + "  /  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/    " + g.o2(" \/\\\     \/\\\   \/\\\/////   \///\\\   /\\\/         ") + "  \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \    " + g.o2("  \/\\\     \/\\\   \/\\\          \///\\\\\\/          ") + "  /  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/    " + g.o2("   \/\\\\\\\\\\\\\   \/\\\\\\\        \//\\\\           ") + "  \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \    " + g.o2("    \/\\\///////\\\   \/\\\///          /\\\\\\         ") + "  /  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/    " + g.o2("     \/\\\     \/\\\   \/\\\           /\\\////\\\      ") + "  \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \    " + g.o2("      \/\\\     \/\\\   \/\\\\\\\\\   /\\\/   \///\\\   ") + "  /  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/    " + g.o2("       \///      \///    \/////////   \///       \///   ") + "  \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \                                                              /  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/     " + g.l1(g.const.vhex) + "<pos=608>" + g.l1("by") + " " + g.b13("redit0") + "     \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \__    __    __    __    __    __    __    __    __    __    __/  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \</b>") + g.const.nl
+    banner = banner + g.s3("<b>\__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/</b>") + g.const.nl
+    banner = banner + g.s3("<b>   \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/  \__/   </b>")
 
     return banner
 end function
