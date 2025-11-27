@@ -147,7 +147,7 @@ g.func.check_user = function(obj, color = 1)
 
         tempUser = tempFile.owner
 
-        result = g.func.silent_delete(computer, tempFile)
+        result = g.func.silent_delete(tempFile)
 
         if not result.success then
             print result.output
@@ -200,58 +200,45 @@ g.func.check_user_silent = function(file, color = 1)
 end function
 
 // **Silent Delete:**
-// Attempts to delete a file or folder by moving it to a temporary location and removing it, returning a Result object.
-// @param {computer} computer - The computer object.
-// @param {file} file - The file or folder to delete.
-// @return {Result} - The result of the delete operation.
-// @example g.func.silent_delete(computer, file) // Deletes a file or folder silently
-//
-g.func.silent_delete = function(computer, file)
-    writable = g.func.find(computer.File("/"), "*", "fw").push(null)[0]
+// Silently removes a file or folder without leaving audit log traces by using file move operations instead of direct deletion.
+// For folders, creates a temporary copy then moves it over itself. For files, uses a readable file as intermediary to overwrite the target.
+// This method helps avoid detection in Grey Hack's audit system by not using the standard delete() function.
+// @param {file} file - The file or folder object to delete.
+// @return {Result} - Result object with success status and error details if applicable.
+// @example g.func.silent_delete(computer.File("/tmp/secret.txt")) // Silently removes a file
+g.func.silent_delete = function(file)
+    if file == null then return Result.New(0, null, g.error("File is null"))
+    path = file.path
 
-    if writable == null then
-        return Result.New(0, null, g.error("Could not find any writable folder."))
+    if file.is_folder then
+        result = file.copy(path, "temp")
+        if result == 1 then return Result.New(1, null, null)
+        if typeof(result) == "string" then return Result.New(0, null, g.error(result))
+
+        result = file.move(path + "/temp", file.name)
+        if result == 1 then return Result.New(1, null, null)
+        if typeof(result) == "string" then return Result.New(0, null, g.error(result))
+    else
+        root = file
+        while root.path != "/"
+            root = root.parent
+        end while
+
+        sac = g.func.find(root, "*", "r").push(null)[0]
+
+        if sac == null then return Result.New(0, null, g.error("Could not find readable file"))
+
+        oldPath = sac.path.split("/")[:-1].join("/")
+        path = path.split("/")[:-1].join("/")
+
+        result = sac.move(path, file.name)
+        if result == 1 then return Result.New(1, null, null)
+        if typeof(result) == "string" then return Result.New(0, null, g.error(result))
+
+        result = sac.move(oldPath, sac.name)
+        if result == 1 then return Result.New(1, null, null)
+        if typeof(result) == "string" then return Result.New(0, null, result)
     end if
-
-    filename = g.func.generateUUID
-
-    while g.func.file_exists(computer, writable.path.trimEnd("/") + "/" + filename)
-        filename = g.func.generateUUID
-    end while
-
-    result = computer.create_folder(writable.path, filename)
-
-    if typeof(result) == "string" then
-        return Result.New(0, null, g.error("Error creating folder: " + result))
-    end if
-
-    folder = computer.File(writable.path.trimEnd("/") + "/" + filename)
-
-    if folder == null then
-        return Result.New(0, null, g.error("Could not create temporary folder."))
-    end if
-
-    result = computer.create_folder(writable.path.trimEnd("/") + "/" + filename, "temp")
-
-    if typeof(result) == "string" then
-        return Result.New(0, null, g.error("Error creating folder: " + result))
-    else if not computer.File(writable.path.trimEnd("/") + "/" + filename + "/temp") then
-        return Result.New(0, null, g.error("Could not create 'temp' folder."))
-    end if
-
-    result = file.move(writable.path.trimEnd("/") + "/" + filename, file.name)
-
-    if typeof(result) == "string" then
-        return Result.New(0, null, g.error("Error moving file: " + result))
-    end if
-
-    result = folder.move(writable.path.trimEnd("/") + "/" + filename + "/temp", folder.name)
-
-    if typeof(result) == "string" then
-        return Result.New(0, null, g.error("Error moving folder: " + result))
-    end if
-
-    return Result.New(1, null, "File deleted successfully.")
 end function
 
 // **Run Binary:**
