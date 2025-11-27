@@ -104,8 +104,8 @@ end function
 
 // **Check User:**
 // Determines the user/owner of a file, computer, or shell object, optionally colorizing the result.
-// @param {object} obj - The file, computer, or shell object.
-// @param {number} color - Whether to colorize the result (default: 1).
+// @param {file|computer|shell} obj - The file, computer, or shell object.
+// @param {bool} color - Whether to colorize the result (default: 1).
 // @return {string} - The user/owner name.
 // @example g.func.check_user(file) // Gets the owner of a file
 //
@@ -173,7 +173,7 @@ end function
 // Attempts to determine the active user by checking write permissions on root and user folders in /home.
 // Returns "root" if root is writable, otherwise returns the name of a writable user folder, or "guest (?)" if none found. Optionally colorizes the result.
 // @param {file} file - The file object.
-// @param {number} color - Whether to colorize the result (default: 1).
+// @param {bool} color - Whether to colorize the result (default: 1).
 // @return {string} - The detected user/owner name ("root", username, or "guest (?)").
 // @example g.func.check_user_silent(file) // Returns the likely owner of the file
 //
@@ -290,4 +290,94 @@ g.func.run_binary = function(key, args)
             return 0
         end if
     end if
+end function
+
+// **Remote Eval:**
+// Creates source code on a target system via shell, builds it, executes it to retrieve intrinsic function results via get_custom_object, then cleans up all files.
+// Useful for executing GreyScript intrinsics remotely and getting results back without leaving traces on the target system.
+// @param {shell} shell - The shell object connected to the target system.
+// @param {string} code - The GreyScript source code to execute remotely.
+// @param {string} resultKey - The key in get_custom_object where results will be stored (default: "result").
+// @return {Result} - Result object containing the retrieved data or error information.
+// @example g.func.remote_eval(shell, "get_custom_object.result = active_user") // Gets active user from remote system
+//
+g.func.remote_eval = function(shell, code, resultKey = "result")
+    if shell == null or typeof(shell) != "shell" then return Result.New(0, null, g.error("Invalid argument: ""shell"""))
+    if code == null or typeof(code) != "string" or code == "" then return Result.New(0, null, g.error("Invalid argument: ""code"""))
+    if resultKey == null or typeof(resultKey) != "string" or resultKey == "" then return Result.New(0, null, g.error("Invalid argument: ""resultKey""")) 
+    
+    computer = shell.host_computer
+
+    // Generate unique filenames
+    fileName = g.func.generateUUID
+    sourceFile = fileName + ".src"
+    
+    // Find writable directory
+    rootDir = computer.File("/")
+    writableDirs = g.func.find(rootDir, "*", "fw")
+    
+    if writableDirs.len == 0 then
+        return Result.New(0, null, g.error("No writable directories found"))
+    end if
+    
+    workDir = writableDirs[0].path.trimEnd("/")
+    sourcePath = workDir + "/" + sourceFile
+    binaryPath = workDir + "/" + fileName
+    
+    // Create source file
+    result = computer.touch(workDir, sourceFile)
+    if typeof(result) == "string" then
+        return Result.New(0, null, g.error("Failed to create source file: " + result))
+    end if
+    
+    sourceFileObj = computer.File(sourcePath)
+    if sourceFileObj == null then
+        return Result.New(0, null, g.error("Could not access created source file"))
+    end if
+    
+    sourceFileObj.set_content(@code)
+    
+    // Build the binary
+    buildResult = shell.build(sourcePath, workDir)
+    if typeof(buildResult) == "string" then
+        // Cleanup source file on build failure
+        g.func.silent_delete(sourceFileObj)
+        return Result.New(0, null, g.error("Build failed: " + buildResult))
+    end if
+    
+    binaryFileObj = computer.File(binaryPath)
+    if binaryFileObj == null then
+        g.func.silent_delete(sourceFileObj)
+        return Result.New(0, null, g.error("Binary file not found after build"))
+    end if
+    
+    // Execute the binary
+    execResult = shell.launch(binaryPath)
+    if typeof(execResult) == "string" then
+        // Cleanup files on execution failure
+        g.func.silent_delete(sourceFileObj)
+        g.func.silent_delete(binaryFileObj)
+        return Result.New(0, null, g.error("Execution failed: " + execResult))
+    end if
+    
+    // Retrieve result from get_custom_object
+    retrievedData = null
+    if get_custom_object.hasIndex(resultKey) then
+        retrievedData = get_custom_object[resultKey]
+        get_custom_object.remove(resultKey) // Clean up the result
+    end if
+    
+    // Cleanup files
+    sourceCleanup = g.func.silent_delete(sourceFileObj)
+    binaryCleanup = g.func.silent_delete(binaryFileObj)
+    
+    if not sourceCleanup.success then
+        print g.error("Failed to cleanup source file: " + sourceCleanup.output)
+    end if
+    
+    if not binaryCleanup.success then
+        print g.error("Failed to cleanup binary file: " + binaryCleanup.output)
+    end if
+    
+    return Result.New(1, retrievedData, null)
 end function
