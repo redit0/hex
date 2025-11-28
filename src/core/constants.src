@@ -3,4 +3,7 @@ g.const.vhex = "v" + g.const.version
 g.const.indent = "    "
 g.const.nl = char(10)
 g.const.tab = char(9)
-g.const.arrow = "-->"
+g.const.ll = 72
+g.const.lb = "—"*g.const.ll
+g.const.llb = "="*g.const.ll
+g.const.slb = "*"*g.const.ll

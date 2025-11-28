@@ -381,3 +381,16 @@ g.func.remote_eval = function(shell, code, resultKey = "result")
     
     return Result.New(1, retrievedData, null)
 end function
+
+// Creates a heading string centered within two lines of ='s.
+// @param {string} str - The string to center.
+// @return {string} - The formatted heading.
+g.func.heading = function(str)
+    pos = (g.const.ll - str.len) / 2
+
+    heading = g.const.llb + g.const.nl
+    heading = heading + g.b3(" "*pos + "<size=20>" + str + "</size>") + g.const.nl
+    heading = heading + g.const.llb + g.const.nl
+
+    return heading
+end function

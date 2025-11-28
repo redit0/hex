@@ -3,15 +3,12 @@ g = get_custom_object
 #include "core/init.src"
 	
 while true
-	if g.command == "" then
+	if g.commands.len == 0 then
 		input = user_input(g.func.getPrompt, 0, 0, 1)
-
-		if input == "" then
-			continue
-		end if
+		if input == "" then continue
 	else
-		input = g.command
-		g.command = ""
+		input = g.commands.pull
+		if input == "" then continue
 	end if
 
 	result = null
@@ -29,8 +26,12 @@ while true
 			result = null
 		end if
 
-		if g.commands.hasIndex(key) then
-			result = g.commands[key].exec(args)
+		if g.tools.hasIndex(key) then
+			result = g.tools[key].exec(args)
+		else if g.utils.hasIndex(key) then
+			result = g.utils[key].exec(args)
+		else if g.fs.hasIndex[key] then
+			result = g.fs[key].exec(args)
 		else
 			if not g.func.run_binary(key, args) then
 				print(g.error("Command not recognized: [" + key + "]"))

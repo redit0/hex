@@ -1,0 +1,110 @@
+// **RM Help:**
+// Displays help text for the rm command with usage examples and options.
+// @return {void}
+//
+rmHelp = function
+    text = g.l3("Usage:","u") + g.const.nl
+    text = text + g.g2(self.name) + g.b3(" [folder name or path]") + g.l2(" Delete the specified file.  Use '*' as a wildcard (unless using a file path instead of a file name).") + g.const.nl
+    text = text + g.g2(self.name) + g.b3(" [-r] [folder name or path]") + g.l2(" Use -r to delete a directory that is not empty.") + g.const.nl
+    text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
+
+    print(text)
+end function
+
+// **RM:**
+// Removes files and directories with support for wildcards and recursive deletion.
+// Uses silent deletion to avoid audit logs in Grey Hack. Returns standard Result object.
+// @param {list<string>|null} args - Command arguments (["-r"], [path], or ["-r", path]).
+// @return {Result} - Result object indicating success/failure of the operation.
+rm = function(args = null)
+    if args == null or args == [] or args.len > 2 then
+        self.help
+        return Result.New(0, null, g.error("Invalid arguments"))
+    end if
+
+    recurse = 0
+
+    if args.len == 1 then
+        if args[0] == "-h" or args[0] == "help" then
+            self.help
+            return Result.New(1, null, null)
+        end if
+
+        if args[0] == "-r" then
+            return Result.New(0, null, g.error("No path specified"))
+        end if
+
+        fileName = args[0]
+    else if args.len == 2 then
+        if args[0] == "-r" then
+            recurse = 1
+            fileName = args[1]
+        else
+            return Result.New(0, null, g.error("Invalid argument: " + args[0]))
+        end if
+    end if
+
+    context = g.stack[g.context.index]
+    files = []
+
+    if fileName.indexOf("/") == null then
+        currentPath = context.computer.File(context.currentPath)
+        if currentPath == null then
+            return Result.New(0, null, g.error("Cannot access current directory"))
+        end if
+
+        fileList = currentPath.get_files + currentPath.get_folders
+        pattern = fileName.replace("\.", "\.").replace("\*", ".*")
+
+        for f in fileList
+            if f.name.is_match(pattern) then files.push(f)
+        end for
+    else
+        if fileName[0] != "/" then
+            fileName = context.currentPath + "/" + fileName
+        end if
+        fileName = fileName.replace("//", "/")
+
+        file = context.computer.File(fileName)
+        if file != null then
+            files.push(file)
+        end if
+    end if
+
+    if files.len == 0 then
+        return Result.New(0, null, g.error("No such file or directory"))
+    end if
+
+    deletedFiles = []
+    errors = []
+
+    for f in files
+        if f.is_folder and recurse == 0 and (f.get_files.len > 0 or f.get_folders.len > 0) then
+            errorMsg = "The directory " + f.name + " is not empty.  Use [rm -r " + args[0] + "] to delete it anyway."
+            errors.push(errorMsg)
+        else
+            result = g.func.silent_delete(f)
+            if result.success then
+                deletedFiles.push(f.path)
+            else
+                errors.push(result.output)
+            end if
+        end if
+    end for
+
+    deletedMsg = "Files Deleted:" + char(10) + deletedFiles.join(char(10))
+
+    if errors.len > 0 then
+        return Result.New(0, deletedFiles, deletedMsg + char(10) + "Errors:" + char(10) + errors.join(char(10)))
+    else
+        return Result.New(1, deletedFiles, deletedMsg)
+    end if
+end function
+
+g.core.rm = {
+    "name": "rm",
+    "shortDescription": "Delete a file or directory",
+    "exec": @rm,
+    "help": @rmHelp,
+    "data": {}
+}

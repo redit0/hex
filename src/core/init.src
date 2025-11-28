@@ -1,10 +1,12 @@
 g.colors = {}
-g.commands = {}
 g.const = {}
+g.fs = {}
 g.func = {}
 g.stack = {}
+g.tools = {}
+g.utils = {}
 
-g.command = ""
+g.commands = []
 
 import_code("types/context.src")
 import_code("types/result.src")

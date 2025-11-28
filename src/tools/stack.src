@@ -1,8 +1,8 @@
 stackHelp = function(self)
-    text = g.const.nl + g.l3("Usage:","u") + g.const.nl
-    text = text + g.g2(self.name) + g.l2(" Prints a list of all contexts currently stored in the stack") + g.const.nl
-    text = text + g.g2(self.name) + g.b3(" [-c/clear]") + g.l2(" Clears all items from the stack except for the home computer context (whichever computer originally ran hex)") + g.const.nl
-    text = text + g.g2(self.name) + g.b3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
+    text = g.const.nl + g.l3("Usage:","bu") + g.const.nl
+    text = text + g.g10(self.name) + g.l2(" Prints a list of all contexts currently stored in the stack") + g.const.nl
+    text = text + g.g10(self.name) + g.s3(" [-c/clear]") + g.l2(" Clears all items from the stack except for the home computer context (whichever computer originally ran hex)") + g.const.nl
+    text = text + g.g10(self.name) + g.s3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
 
     return text
 end function
@@ -182,7 +182,7 @@ end function
 // You can leave it as src code (name it with a .src file extension), otherwise hex will attempt to load it as a binary file that has been built with the
 // 'allow import' flag set.
 
-g.commands.stack = {
+g.tools.stack = {
     "name": "stack",
     "shortDescription": "Prints a list of all contexts currently in the stack.",
     "exec": @doStack,

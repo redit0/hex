@@ -1,0 +1,114 @@
+// **Help Help:**
+// Displays help text for the help command with usage examples and options.
+// @return {string} - The formatted help text.
+//
+helpHelp = function()
+    text = g.l3("Usage:","bu") + g.const.nl
+    text = text + g.g10(self.name) + g.l2(" Displays a list of commands and a brief description of what each does.") + g.const.nl
+    text = text + g.g10(self.name) + g.s3(" [command_name]") + g.l2(" Print the help text for the specified command.") + g.const.nl
+    text = text + g.g10(self.name) + g.s3(" [-h/help]") + g.l2(" Displays this help text") + g.const.nl
+
+    return text
+end function
+
+// **Help:**
+// Displays list of available commands or specific command help text.
+// Searches through tools, utilities, and filesystem commands to provide comprehensive help.
+// @param {list<string>|null} args - Command arguments ([command_name] or null for full list).
+// @return {Result} - Result object with formatted help output or error message.
+//
+doHelp = function(args = null)
+    if args == null or args == [] then
+        output = g.func.heading("Commands") + g.const.nl
+        output = output + g.s3("<voffset=0.5em><size=115%>Tools:</size></voffset>") + g.const.nl
+
+        if g.tools != null then
+            indexes = g.tools.indexes
+            indexes.sort
+
+            for tool in indexes
+                if g.tools[tool].hasIndex("shortDescription") then
+                    space = ". " * (20 - tool.len)
+                    output = output + "  " + g.s4(tool) + " " + space + g.l2(g.tools[tool].shortDescription) + g.const.nl
+                end if
+            end for
+        end if
+
+        output = output + g.const.nl + g.s3("<voffset=0.5em><size=115%>Utilities:</size></voffset>") + g.const.nl
+
+        if g.utils != null then
+            indexes = g.utils.indexes
+            indexes.sort
+
+            for util in indexes
+                if g.utils[util].hasIndex("shortDescription") then
+                    space = ". " * (20 - util.len)
+                    output = output + "  " + g.s4(util) + " " + space + g.l2(g.utils[util].shortDescription) + g.const.nl
+                end if
+            end for
+        end if
+
+        output = output + g.const.nl + g.s3("<voffset=0.5em><size=115%>Command Line:</size></voffset>") + g.const.nl
+
+        if g.fs != null then
+            indexes = g.fs.indexes
+            indexes.sort
+
+            for fs in indexes
+                if g.fs[fs].hasIndex("shortDescription") then
+                    space = ". " * (20 - fs.len)
+                    output = output + "  " + g.s4(fs) + " " + space + g.l2(g.fs[fs].shortDescription) + g.const.nl
+                end if
+            end for
+        end if
+
+        return Result.New(1, null, output)
+    else if args.len == 1 then
+        commandName = args[0]
+        
+        // Handle help request for help command itself
+        if commandName == "-h" or commandName == "help" then
+            return Result.New(1, null, self.help)
+        end if
+        
+        // Search for command in tools
+        if g.tools != null and g.tools.hasIndex(commandName) then
+            if g.tools[commandName].hasIndex("help") then
+                return Result.New(1, null, g.tools[commandName].help)
+            else
+                return Result.New(0, null, g.error("No help available for " + commandName))
+            end if
+        end if
+        
+        // Search for command in utils
+        if g.utils != null and g.utils.hasIndex(commandName) then
+            if g.utils[commandName].hasIndex("help") then
+                return Result.New(1, null, g.utils[commandName].help)
+            else
+                return Result.New(0, null, g.error("No help available for " + commandName))
+            end if
+        end if
+        
+        // Search for command in fs
+        if g.fs != null and g.fs.hasIndex(commandName) then
+            if g.fs[commandName].hasIndex("help") then
+                return Result.New(1, null, g.fs[commandName].help)
+            else
+                return Result.New(0, null, g.error("No help available for " + commandName))
+            end if
+        end if
+        
+        return Result.New(0, null, g.error("Command not recognized: " + commandName))
+    else
+        print self.help
+        return Result.New(0, null, g.error("Invalid argument(s)"))
+    end if
+end function
+
+g.utils.help = {
+    "name": "help",
+    "shortDescription": "Displays a list of commands.",
+    "exec": @doHelp,
+    "help": @helpHelp,
+    "data": {}
+}
